@@ -1,0 +1,36 @@
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Backend
+backend/bin/
+backend/tmp/
+backend/coverage.out
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# Generated API client
+frontend/src/api/generated/*
+!frontend/src/api/generated/.gitkeep
+
+# Build artifacts
+*.exe
+*.test
