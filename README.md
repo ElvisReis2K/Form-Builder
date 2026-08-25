@@ -277,16 +277,33 @@ O admin em `/admin` consome a API real para listar, criar, editar, publicar, des
 
 ## OpenAPI e client TypeScript
 
-A especificacao OpenAPI sera mantida como parte do fluxo de build do backend.
+Sempre que uma rota, payload, schema ou status code da API mudar no backend, atualize primeiro a especificacao OpenAPI gerada:
 
 ```bash
 make openapi
 ```
 
-O client TypeScript do frontend sera gerado a partir da especificacao:
+Esse comando executa o backend Go e regrava `backend/openapi/openapi.json`. Depois gere novamente os tipos TypeScript consumidos pelo frontend:
 
 ```bash
 make client
+```
+
+Esse comando roda `npm run generate:api` dentro de `frontend` e atualiza `frontend/src/api/generated/schema.ts` a partir de `backend/openapi/openapi.json`.
+
+Fluxo obrigatorio para mudancas de contrato:
+
+```bash
+make openapi && make client
+```
+
+Em ambientes sem GNU Make, rode os comandos equivalentes:
+
+```bash
+cd backend
+go run ./cmd/server openapi > ./openapi/openapi.json
+cd ../frontend
+npm run generate:api
 ```
 
 Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formularios e respostas sao aliases derivados de `frontend/src/api/generated/schema.ts`, e os wrappers de API usam o contrato `paths` gerado para tipar path, metodo, parametros, body e resposta.
