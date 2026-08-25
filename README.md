@@ -173,7 +173,7 @@ Rotas:
 
 ## CRUD de formularios
 
-O backend ja expõe CRUD autenticado para formularios. Campos sao persistidos junto com o formulario e substituidos em bloco no `PUT`, mantendo a camada de regra no backend.
+O backend ja expõe CRUD autenticado para formularios. Campos sao persistidos junto com o formulario e substituidos em bloco no `PUT`, mantendo a camada de regra no backend. Cada formulario tambem possui metadados de privacidade usados no aviso publico: e-mail do controlador, finalidade do tratamento e politica de retencao.
 
 Rotas autenticadas:
 
@@ -193,6 +193,8 @@ Rota publica:
 Respostas:
 
 - `GET /api/forms/{formId}/responses`: lista respostas recebidas por formulario do usuario autenticado.
+- `GET /api/forms/{formId}/responses/export`: exporta respostas em JSON para atendimento administrativo.
+- `DELETE /api/forms/{formId}/responses/{responseId}`: exclui uma resposta especifica do formulario.
 
 Criar formulario:
 
@@ -203,6 +205,9 @@ curl -i http://localhost:8080/api/forms \
   -d '{
     "title": "Pesquisa de satisfacao",
     "description": "Formulario publico para clientes",
+    "controllerEmail": "privacidade@example.com",
+    "privacyPurpose": "Coletar feedback para melhoria do atendimento.",
+    "retentionPolicy": "As respostas serao mantidas por ate 90 dias apos o envio.",
     "fields": [
       {
         "type": "text",
@@ -239,6 +244,7 @@ Enviar resposta publica:
 curl -i http://localhost:8080/api/public/forms/<public-slug>/responses \
   -H "Content-Type: application/json" \
   -d '{
+    "privacyAcknowledged": true,
     "answers": {
       "<field-id>": "Ada Lovelace"
     }
@@ -251,6 +257,31 @@ Listar respostas no admin:
 curl -i http://localhost:8080/api/forms/<form-id>/responses \
   --cookie "form_builder_session=<cookie-value>"
 ```
+
+Exportar respostas:
+
+```bash
+curl -i http://localhost:8080/api/forms/<form-id>/responses/export \
+  --cookie "form_builder_session=<cookie-value>"
+```
+
+Excluir uma resposta:
+
+```bash
+curl -i -X DELETE http://localhost:8080/api/forms/<form-id>/responses/<response-id> \
+  --cookie "form_builder_session=<cookie-value>"
+```
+
+## Pacote minimo LGPD
+
+O projeto inclui controles basicos para apoiar transparencia e atendimento de direitos do titular, sem substituir revisao juridica do controlador.
+
+- Pagina publica `/privacidade` com politica de privacidade do sistema.
+- Formulario publicado exige e exibe e-mail do controlador, finalidade do tratamento e politica de retencao.
+- Publicacao bloqueada quando os metadados de privacidade obrigatorios nao foram preenchidos.
+- Envio publico exige `privacyAcknowledged: true` e grava `privacyAcknowledgedAt` na resposta.
+- Painel administrativo permite exportar respostas em JSON e excluir uma resposta especifica.
+- Cookies usados hoje sao essenciais: sessao HTTP-only e estado temporario do Google OAuth.
 
 ## Frontend
 
@@ -288,13 +319,16 @@ Checklist:
 - Criar uma conta por e-mail e senha.
 - Entrar no admin em `/admin`.
 - Criar um formulario.
+- Preencher e-mail do controlador, finalidade do tratamento e retencao das respostas.
 - Adicionar campos ao formulario.
 - Salvar o formulario.
 - Publicar o formulario.
 - Abrir o link publico gerado em `/f/:slug`.
+- Confirmar ciencia do aviso de privacidade.
 - Enviar uma resposta sem autenticacao.
 - Voltar ao admin e abrir `/admin/forms/:formId/responses`.
 - Confirmar que a resposta enviada aparece na listagem.
+- Exportar respostas em JSON e excluir uma resposta de teste.
 
 Sinais esperados:
 

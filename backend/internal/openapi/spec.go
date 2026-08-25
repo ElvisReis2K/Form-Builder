@@ -172,6 +172,35 @@ func spec() map[string]any {
 					},
 				},
 			},
+			"/api/forms/{formId}/responses/export": map[string]any{
+				"get": map[string]any{
+					"summary":    "Export responses received by a form",
+					"security":   sessionSecurity(),
+					"parameters": []map[string]any{pathParameter("formId", "Form ID")},
+					"responses": map[string]any{
+						"200": jsonResponse("Exported form responses", "#/components/schemas/FormSubmissionExportResponse"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/forms/{formId}/responses/{responseId}": map[string]any{
+				"delete": map[string]any{
+					"summary":  "Delete a response received by a form",
+					"security": sessionSecurity(),
+					"parameters": []map[string]any{
+						pathParameter("formId", "Form ID"),
+						pathParameter("responseId", "Response ID"),
+					},
+					"responses": map[string]any{
+						"204": emptyResponse("Response deleted"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Response not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
 			"/api/forms/{formId}/publish": map[string]any{
 				"post": map[string]any{
 					"summary":    "Publish a form and expose a public slug",
@@ -285,6 +314,11 @@ func spec() map[string]any {
 					"form":      refSchema("#/components/schemas/FormResponseSummary"),
 					"responses": arraySchema(refSchema("#/components/schemas/FormSubmission")),
 				}),
+				"FormSubmissionExportResponse": objectSchema([]string{"form", "responses", "exportedAt"}, map[string]any{
+					"form":       refSchema("#/components/schemas/FormResponseSummary"),
+					"responses":  arraySchema(refSchema("#/components/schemas/FormSubmission")),
+					"exportedAt": dateTimeSchema(),
+				}),
 				"Form": objectSchema([]string{"id", "title", "status", "fields", "createdAt", "updatedAt"}, map[string]any{
 					"id": map[string]any{
 						"type":   "string",
@@ -293,7 +327,10 @@ func spec() map[string]any {
 					"title": map[string]any{
 						"type": "string",
 					},
-					"description": nullableStringSchema(),
+					"description":     nullableStringSchema(),
+					"controllerEmail": nullableEmailSchema(),
+					"privacyPurpose":  nullableStringSchema(),
+					"retentionPolicy": nullableStringSchema(),
 					"status": map[string]any{
 						"type": "string",
 						"enum": []string{"draft", "published"},
@@ -336,7 +373,10 @@ func spec() map[string]any {
 					"title": map[string]any{
 						"type": "string",
 					},
-					"fields": arraySchema(refSchema("#/components/schemas/FormResponseFieldSummary")),
+					"controllerEmail": nullableEmailSchema(),
+					"privacyPurpose":  nullableStringSchema(),
+					"retentionPolicy": nullableStringSchema(),
+					"fields":          arraySchema(refSchema("#/components/schemas/FormResponseFieldSummary")),
 				}),
 				"FormResponseFieldSummary": objectSchema([]string{"id", "position", "type", "label", "required"}, map[string]any{
 					"id": map[string]any{
@@ -354,7 +394,7 @@ func spec() map[string]any {
 						"type": "boolean",
 					},
 				}),
-				"FormSubmission": objectSchema([]string{"id", "formId", "answers", "submittedAt"}, map[string]any{
+				"FormSubmission": objectSchema([]string{"id", "formId", "answers", "privacyAcknowledgedAt", "submittedAt"}, map[string]any{
 					"id": map[string]any{
 						"type":   "string",
 						"format": "uuid",
@@ -363,11 +403,15 @@ func spec() map[string]any {
 						"type":   "string",
 						"format": "uuid",
 					},
-					"answers":     freeObjectSchema(),
-					"submittedAt": dateTimeSchema(),
+					"answers":               freeObjectSchema(),
+					"privacyAcknowledgedAt": dateTimeSchema(),
+					"submittedAt":           dateTimeSchema(),
 				}),
-				"SubmitResponseRequest": objectSchema([]string{"answers"}, map[string]any{
+				"SubmitResponseRequest": objectSchema([]string{"answers", "privacyAcknowledged"}, map[string]any{
 					"answers": freeObjectSchema(),
+					"privacyAcknowledged": map[string]any{
+						"type": "boolean",
+					},
 				}),
 				"FormRequest": objectSchema([]string{"title"}, map[string]any{
 					"title": map[string]any{
@@ -375,8 +419,11 @@ func spec() map[string]any {
 						"minLength": 1,
 						"maxLength": 160,
 					},
-					"description": nullableStringSchema(),
-					"fields":      arraySchema(refSchema("#/components/schemas/FormFieldInput")),
+					"description":     nullableStringSchema(),
+					"controllerEmail": nullableEmailSchema(),
+					"privacyPurpose":  nullableStringSchema(),
+					"retentionPolicy": nullableStringSchema(),
+					"fields":          arraySchema(refSchema("#/components/schemas/FormFieldInput")),
 				}),
 				"FormFieldInput": objectSchema([]string{"type", "label"}, map[string]any{
 					"type": fieldTypeSchema(),
@@ -488,6 +535,14 @@ func fieldTypeSchema() map[string]any {
 func nullableStringSchema() map[string]any {
 	return map[string]any{
 		"type":     "string",
+		"nullable": true,
+	}
+}
+
+func nullableEmailSchema() map[string]any {
+	return map[string]any{
+		"type":     "string",
+		"format":   "email",
 		"nullable": true,
 	}
 }

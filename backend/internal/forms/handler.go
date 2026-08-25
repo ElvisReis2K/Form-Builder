@@ -15,9 +15,12 @@ type Handler struct {
 }
 
 type formRequest struct {
-	Title       string         `json:"title"`
-	Description *string        `json:"description"`
-	Fields      []fieldRequest `json:"fields"`
+	Title           string         `json:"title"`
+	Description     *string        `json:"description"`
+	ControllerEmail *string        `json:"controllerEmail"`
+	PrivacyPurpose  *string        `json:"privacyPurpose"`
+	RetentionPolicy *string        `json:"retentionPolicy"`
+	Fields          []fieldRequest `json:"fields"`
 }
 
 type fieldRequest struct {
@@ -34,16 +37,19 @@ type formListResponse struct {
 }
 
 type formResponse struct {
-	ID          string          `json:"id"`
-	Title       string          `json:"title"`
-	Description *string         `json:"description"`
-	Status      FormStatus      `json:"status"`
-	PublicSlug  *string         `json:"publicSlug"`
-	PublicURL   *string         `json:"publicUrl"`
-	PublishedAt *string         `json:"publishedAt"`
-	Fields      []fieldResponse `json:"fields"`
-	CreatedAt   string          `json:"createdAt"`
-	UpdatedAt   string          `json:"updatedAt"`
+	ID              string          `json:"id"`
+	Title           string          `json:"title"`
+	Description     *string         `json:"description"`
+	ControllerEmail *string         `json:"controllerEmail"`
+	PrivacyPurpose  *string         `json:"privacyPurpose"`
+	RetentionPolicy *string         `json:"retentionPolicy"`
+	Status          FormStatus      `json:"status"`
+	PublicSlug      *string         `json:"publicSlug"`
+	PublicURL       *string         `json:"publicUrl"`
+	PublishedAt     *string         `json:"publishedAt"`
+	Fields          []fieldResponse `json:"fields"`
+	CreatedAt       string          `json:"createdAt"`
+	UpdatedAt       string          `json:"updatedAt"`
 }
 
 type fieldResponse struct {
@@ -241,9 +247,12 @@ func (request formRequest) toInput() FormInput {
 	}
 
 	return FormInput{
-		Title:       request.Title,
-		Description: request.Description,
-		Fields:      fields,
+		Title:           request.Title,
+		Description:     request.Description,
+		ControllerEmail: request.ControllerEmail,
+		PrivacyPurpose:  request.PrivacyPurpose,
+		RetentionPolicy: request.RetentionPolicy,
+		Fields:          fields,
 	}
 }
 
@@ -272,16 +281,19 @@ func toFormResponse(form Form) formResponse {
 	}
 
 	return formResponse{
-		ID:          form.ID,
-		Title:       form.Title,
-		Description: form.Description,
-		Status:      form.Status,
-		PublicSlug:  form.PublicSlug,
-		PublicURL:   publicURL(form.PublicSlug),
-		PublishedAt: optionalTime(form.PublishedAt),
-		Fields:      fields,
-		CreatedAt:   form.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:   form.UpdatedAt.UTC().Format(time.RFC3339),
+		ID:              form.ID,
+		Title:           form.Title,
+		Description:     form.Description,
+		ControllerEmail: form.ControllerEmail,
+		PrivacyPurpose:  form.PrivacyPurpose,
+		RetentionPolicy: form.RetentionPolicy,
+		Status:          form.Status,
+		PublicSlug:      form.PublicSlug,
+		PublicURL:       publicURL(form.PublicSlug),
+		PublishedAt:     optionalTime(form.PublishedAt),
+		Fields:          fields,
+		CreatedAt:       form.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:       form.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }
 

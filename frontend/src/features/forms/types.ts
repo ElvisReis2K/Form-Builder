@@ -8,6 +8,7 @@ export type FormFieldInput = components['schemas']['FormFieldInput'];
 export type FormRequest = components['schemas']['FormRequest'];
 export type FormListResponse = components['schemas']['FormListResponse'];
 export type FormSubmission = components['schemas']['FormSubmission'];
+export type FormSubmissionExportResponse = components['schemas']['FormSubmissionExportResponse'];
 export type SubmitResponseRequest = components['schemas']['SubmitResponseRequest'];
 export type FormResponseFieldSummary = components['schemas']['FormResponseFieldSummary'];
 export type FormResponseSummary = components['schemas']['FormResponseSummary'];

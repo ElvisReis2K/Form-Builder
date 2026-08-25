@@ -37,6 +37,11 @@
       },
       "Form": {
         "properties": {
+          "controllerEmail": {
+            "format": "email",
+            "nullable": true,
+            "type": "string"
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -55,6 +60,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "privacyPurpose": {
+            "nullable": true,
+            "type": "string"
+          },
           "publicSlug": {
             "nullable": true,
             "type": "string"
@@ -65,6 +74,10 @@
           },
           "publishedAt": {
             "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "retentionPolicy": {
             "nullable": true,
             "type": "string"
           },
@@ -203,6 +216,11 @@
       },
       "FormRequest": {
         "properties": {
+          "controllerEmail": {
+            "format": "email",
+            "nullable": true,
+            "type": "string"
+          },
           "description": {
             "nullable": true,
             "type": "string"
@@ -212,6 +230,14 @@
               "$ref": "#/components/schemas/FormFieldInput"
             },
             "type": "array"
+          },
+          "privacyPurpose": {
+            "nullable": true,
+            "type": "string"
+          },
+          "retentionPolicy": {
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "maxLength": 160,
@@ -262,6 +288,11 @@
       },
       "FormResponseSummary": {
         "properties": {
+          "controllerEmail": {
+            "format": "email",
+            "nullable": true,
+            "type": "string"
+          },
           "fields": {
             "items": {
               "$ref": "#/components/schemas/FormResponseFieldSummary"
@@ -270,6 +301,14 @@
           },
           "id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "privacyPurpose": {
+            "nullable": true,
+            "type": "string"
+          },
+          "retentionPolicy": {
+            "nullable": true,
             "type": "string"
           },
           "title": {
@@ -297,6 +336,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "privacyAcknowledgedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
           "submittedAt": {
             "format": "date-time",
             "type": "string"
@@ -306,7 +349,31 @@
           "id",
           "formId",
           "answers",
+          "privacyAcknowledgedAt",
           "submittedAt"
+        ],
+        "type": "object"
+      },
+      "FormSubmissionExportResponse": {
+        "properties": {
+          "exportedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "form": {
+            "$ref": "#/components/schemas/FormResponseSummary"
+          },
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/FormSubmission"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "form",
+          "responses",
+          "exportedAt"
         ],
         "type": "object"
       },
@@ -386,10 +453,14 @@
           "answers": {
             "additionalProperties": true,
             "type": "object"
+          },
+          "privacyAcknowledged": {
+            "type": "boolean"
           }
         },
         "required": [
-          "answers"
+          "answers",
+          "privacyAcknowledged"
         ],
         "type": "object"
       },
@@ -1028,6 +1099,134 @@
           }
         ],
         "summary": "List responses received by a form"
+      }
+    },
+    "/api/forms/{formId}/responses/export": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Form ID",
+            "in": "path",
+            "name": "formId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormSubmissionExportResponse"
+                }
+              }
+            },
+            "description": "Exported form responses"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Form not found"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Export responses received by a form"
+      }
+    },
+    "/api/forms/{formId}/responses/{responseId}": {
+      "delete": {
+        "parameters": [
+          {
+            "description": "Form ID",
+            "in": "path",
+            "name": "formId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Response ID",
+            "in": "path",
+            "name": "responseId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Response not found"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Delete a response received by a form"
       }
     },
     "/api/forms/{formId}/unpublish": {

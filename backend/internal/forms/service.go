@@ -5,17 +5,21 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"net/mail"
 	"regexp"
 	"strings"
 )
 
 const (
-	maxTitleLength       = 160
-	maxDescriptionLength = 1000
-	maxFieldsPerForm     = 50
-	maxLabelLength       = 160
-	maxPlaceholderLength = 160
-	maxOptionLength      = 120
+	maxTitleLength           = 160
+	maxDescriptionLength     = 1000
+	maxControllerEmailLength = 160
+	maxPrivacyPurposeLength  = 1000
+	maxRetentionPolicyLength = 1000
+	maxFieldsPerForm         = 50
+	maxLabelLength           = 160
+	maxPlaceholderLength     = 160
+	maxOptionLength          = 120
 )
 
 var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
@@ -59,6 +63,16 @@ func (service *Service) UpdateForm(ctx context.Context, ownerID string, formID s
 		return Form{}, err
 	}
 
+	existing, err := service.repo.GetByOwner(ctx, ownerID, formID)
+	if err != nil {
+		return Form{}, err
+	}
+	if existing.Status == FormStatusPublished {
+		if err := validatePublishableInput(normalized); err != nil {
+			return Form{}, err
+		}
+	}
+
 	return service.repo.Update(ctx, ownerID, formID, normalized)
 }
 
@@ -78,6 +92,9 @@ func (service *Service) PublishForm(ctx context.Context, ownerID string, formID 
 
 	if len(form.Fields) == 0 {
 		return Form{}, ValidationError{Message: "o formulario deve ter pelo menos um campo antes da publicacao"}
+	}
+	if err := validatePrivacyNotice(form.ControllerEmail, form.PrivacyPurpose, form.RetentionPolicy); err != nil {
+		return Form{}, err
 	}
 
 	for attempt := 0; attempt < 5; attempt++ {
@@ -131,6 +148,21 @@ func normalizeFormInput(input FormInput) (FormInput, error) {
 		return FormInput{}, ValidationError{Message: "descricao muito longa"}
 	}
 
+	controllerEmail, err := normalizeControllerEmail(input.ControllerEmail)
+	if err != nil {
+		return FormInput{}, err
+	}
+
+	privacyPurpose := normalizeOptionalString(input.PrivacyPurpose)
+	if privacyPurpose != nil && len(*privacyPurpose) > maxPrivacyPurposeLength {
+		return FormInput{}, ValidationError{Message: "finalidade do tratamento muito longa"}
+	}
+
+	retentionPolicy := normalizeOptionalString(input.RetentionPolicy)
+	if retentionPolicy != nil && len(*retentionPolicy) > maxRetentionPolicyLength {
+		return FormInput{}, ValidationError{Message: "politica de retencao muito longa"}
+	}
+
 	if len(input.Fields) > maxFieldsPerForm {
 		return FormInput{}, ValidationError{Message: "formulario tem campos demais"}
 	}
@@ -146,10 +178,35 @@ func normalizeFormInput(input FormInput) (FormInput, error) {
 	}
 
 	return FormInput{
-		Title:       title,
-		Description: description,
-		Fields:      fields,
+		Title:           title,
+		Description:     description,
+		ControllerEmail: controllerEmail,
+		PrivacyPurpose:  privacyPurpose,
+		RetentionPolicy: retentionPolicy,
+		Fields:          fields,
 	}, nil
+}
+
+func validatePublishableInput(input FormInput) error {
+	if len(input.Fields) == 0 {
+		return ValidationError{Message: "o formulario deve ter pelo menos um campo antes da publicacao"}
+	}
+
+	return validatePrivacyNotice(input.ControllerEmail, input.PrivacyPurpose, input.RetentionPolicy)
+}
+
+func validatePrivacyNotice(controllerEmail *string, privacyPurpose *string, retentionPolicy *string) error {
+	if controllerEmail == nil {
+		return ValidationError{Message: "e-mail de contato do controlador e obrigatorio antes da publicacao"}
+	}
+	if privacyPurpose == nil {
+		return ValidationError{Message: "finalidade do tratamento e obrigatoria antes da publicacao"}
+	}
+	if retentionPolicy == nil {
+		return ValidationError{Message: "politica de retencao e obrigatoria antes da publicacao"}
+	}
+
+	return nil
 }
 
 func normalizeFieldInput(input FieldInput) (FieldInput, error) {
@@ -210,6 +267,23 @@ func normalizeOptionalString(value *string) *string {
 	}
 
 	return &trimmed
+}
+
+func normalizeControllerEmail(value *string) (*string, error) {
+	email := normalizeOptionalString(value)
+	if email == nil {
+		return nil, nil
+	}
+	if len(*email) > maxControllerEmailLength {
+		return nil, ValidationError{Message: "e-mail de contato do controlador muito longo"}
+	}
+
+	parsed, err := mail.ParseAddress(*email)
+	if err != nil || parsed.Address != *email {
+		return nil, ValidationError{Message: "e-mail de contato do controlador deve ser valido"}
+	}
+
+	return email, nil
 }
 
 func normalizeOptions(options []string) []string {

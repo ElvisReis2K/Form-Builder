@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/mail"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -13,6 +14,8 @@ import (
 )
 
 const maxTextAnswerLength = 4000
+
+var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
 
 type Service struct {
 	formsRepo *forms.Repository
@@ -44,6 +47,10 @@ func (service *Service) SubmitResponse(ctx context.Context, slug string, input S
 		return Response{}, err
 	}
 
+	if err := validatePrivacyAcknowledgement(input.PrivacyAcknowledged); err != nil {
+		return Response{}, err
+	}
+
 	answers, err := validateAnswers(form, input.Answers)
 	if err != nil {
 		return Response{}, err
@@ -71,6 +78,25 @@ func (service *Service) ListResponses(ctx context.Context, ownerID string, formI
 	}
 
 	return form, responses, nil
+}
+
+func (service *Service) DeleteResponse(ctx context.Context, ownerID string, formID string, responseID string) error {
+	if err := validateID(formID, "id do formulario invalido"); err != nil {
+		return err
+	}
+	if err := validateID(responseID, "id da resposta invalido"); err != nil {
+		return err
+	}
+
+	return service.repo.DeleteByID(ctx, ownerID, formID, responseID)
+}
+
+func validatePrivacyAcknowledgement(acknowledged bool) error {
+	if !acknowledged {
+		return ValidationError{Message: "e necessario confirmar ciencia do aviso de privacidade"}
+	}
+
+	return nil
 }
 
 func validateAnswers(form forms.Form, answers map[string]any) (map[string]any, error) {
@@ -224,4 +250,12 @@ func isEmptyAnswer(field forms.Field, value any) bool {
 	default:
 		return false
 	}
+}
+
+func validateID(id string, message string) error {
+	if !uuidPattern.MatchString(strings.TrimSpace(id)) {
+		return ValidationError{Message: message}
+	}
+
+	return nil
 }

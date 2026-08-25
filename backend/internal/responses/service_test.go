@@ -59,6 +59,16 @@ func TestValidateAnswersRejectsInvalidSelectOption(t *testing.T) {
 	}
 }
 
+func TestValidatePrivacyAcknowledgementRequiresConfirmation(t *testing.T) {
+	if err := validatePrivacyAcknowledgement(false); err == nil {
+		t.Fatal("expected validation error")
+	}
+
+	if err := validatePrivacyAcknowledgement(true); err != nil {
+		t.Fatalf("expected valid acknowledgement, got %v", err)
+	}
+}
+
 func testForm() forms.Form {
 	return forms.Form{
 		ID: "form-id",

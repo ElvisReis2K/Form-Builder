@@ -4,11 +4,17 @@ import "testing"
 
 func TestNormalizeFormInput(t *testing.T) {
 	description := "  Customer feedback  "
+	controllerEmail := "  privacy@example.com  "
+	privacyPurpose := "  Answer customer feedback  "
+	retentionPolicy := "  Responses are retained for 90 days  "
 	placeholder := "  Your name  "
 
 	input, err := normalizeFormInput(FormInput{
-		Title:       "  Feedback form  ",
-		Description: &description,
+		Title:           "  Feedback form  ",
+		Description:     &description,
+		ControllerEmail: &controllerEmail,
+		PrivacyPurpose:  &privacyPurpose,
+		RetentionPolicy: &retentionPolicy,
 		Fields: []FieldInput{
 			{
 				Type:        FieldTypeText,
@@ -33,6 +39,15 @@ func TestNormalizeFormInput(t *testing.T) {
 	if input.Description == nil || *input.Description != "Customer feedback" {
 		t.Fatalf("expected description to be normalized, got %#v", input.Description)
 	}
+	if input.ControllerEmail == nil || *input.ControllerEmail != "privacy@example.com" {
+		t.Fatalf("expected controller email to be normalized, got %#v", input.ControllerEmail)
+	}
+	if input.PrivacyPurpose == nil || *input.PrivacyPurpose != "Answer customer feedback" {
+		t.Fatalf("expected privacy purpose to be normalized, got %#v", input.PrivacyPurpose)
+	}
+	if input.RetentionPolicy == nil || *input.RetentionPolicy != "Responses are retained for 90 days" {
+		t.Fatalf("expected retention policy to be normalized, got %#v", input.RetentionPolicy)
+	}
 	if input.Fields[0].Placeholder == nil || *input.Fields[0].Placeholder != "Your name" {
 		t.Fatalf("expected placeholder to be normalized, got %#v", input.Fields[0].Placeholder)
 	}
@@ -49,6 +64,34 @@ func TestNormalizeFormInputRequiresSelectOptions(t *testing.T) {
 				Type:  FieldTypeSelect,
 				Label: "Plan",
 			},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+}
+
+func TestNormalizeFormInputRejectsInvalidControllerEmail(t *testing.T) {
+	controllerEmail := "not-an-email"
+
+	_, err := normalizeFormInput(FormInput{
+		Title:           "Feedback form",
+		ControllerEmail: &controllerEmail,
+	})
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+}
+
+func TestValidatePublishableInputRequiresPrivacyNotice(t *testing.T) {
+	controllerEmail := "privacy@example.com"
+	privacyPurpose := "Answer customer feedback"
+
+	err := validatePublishableInput(FormInput{
+		ControllerEmail: &controllerEmail,
+		PrivacyPurpose:  &privacyPurpose,
+		Fields: []FieldInput{
+			{Type: FieldTypeText, Label: "Name"},
 		},
 	})
 	if err == nil {

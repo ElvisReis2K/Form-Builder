@@ -8,8 +8,20 @@ export const responsesPageStyles = {
     },
   },
   header: {
-    gap: 0.75,
+    flexDirection: {
+      xs: 'column',
+      sm: 'row',
+    },
+    gap: 2,
+    justifyContent: 'space-between',
+    alignItems: {
+      xs: 'stretch',
+      sm: 'center',
+    },
     pb: 1,
+  },
+  titleBlock: {
+    gap: 0.75,
   },
   panel: {
     overflow: 'hidden',
@@ -18,7 +30,7 @@ export const responsesPageStyles = {
     overflowX: 'auto',
   },
   table: {
-    minWidth: 560,
+    minWidth: 760,
   },
   tableHead: {
     bgcolor: '#f9fbfd',

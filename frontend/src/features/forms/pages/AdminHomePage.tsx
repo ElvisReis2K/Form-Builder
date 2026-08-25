@@ -125,6 +125,8 @@ export default function AdminHomePage() {
     deleteMutation.isPending;
   const selectedStatus = selectedForm?.status ?? 'draft';
   const hasSavedForm = draft.id !== null;
+  const hasPrivacyNotice =
+    draft.controllerEmail.trim() !== '' && draft.privacyPurpose.trim() !== '' && draft.retentionPolicy.trim() !== '';
 
   function startNewForm() {
     setIsCreating(true);
@@ -283,6 +285,38 @@ export default function AdminHomePage() {
             <Divider />
 
             <Stack sx={formPagesStyles.sectionHeader}>
+              <Typography variant="h6">Privacidade</Typography>
+            </Stack>
+
+            <Box sx={formPagesStyles.formGrid}>
+              <TextField
+                label="E-mail do controlador"
+                type="email"
+                value={draft.controllerEmail}
+                onChange={(event) => updateDraft({ controllerEmail: event.target.value })}
+                required
+              />
+              <TextField
+                label="Finalidade do tratamento"
+                value={draft.privacyPurpose}
+                onChange={(event) => updateDraft({ privacyPurpose: event.target.value })}
+                multiline
+                minRows={3}
+                required
+              />
+              <TextField
+                label="Retencao das respostas"
+                value={draft.retentionPolicy}
+                onChange={(event) => updateDraft({ retentionPolicy: event.target.value })}
+                multiline
+                minRows={3}
+                required
+              />
+            </Box>
+
+            <Divider />
+
+            <Stack sx={formPagesStyles.sectionHeader}>
               <Typography variant="h6">Campos</Typography>
               <Button variant="outlined" onClick={addField}>
                 Adicionar campo
@@ -361,7 +395,7 @@ export default function AdminHomePage() {
                   Despublicar
                 </Button>
               ) : (
-                <Button variant="outlined" onClick={publishSelectedForm} disabled={!hasSavedForm || isBusy}>
+                <Button variant="outlined" onClick={publishSelectedForm} disabled={!hasSavedForm || isBusy || !hasPrivacyNotice}>
                   Publicar
                 </Button>
               )}

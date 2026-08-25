@@ -54,3 +54,15 @@ export function listFormResponses(formId: string) {
     path: { formId },
   });
 }
+
+export function exportFormResponses(formId: string) {
+  return apiRequest('/api/forms/{formId}/responses/export', 'get', {
+    path: { formId },
+  });
+}
+
+export function deleteFormResponse(formId: string, responseId: string) {
+  return apiRequest('/api/forms/{formId}/responses/{responseId}', 'delete', {
+    path: { formId, responseId },
+  });
+}

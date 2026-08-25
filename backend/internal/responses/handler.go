@@ -16,14 +16,16 @@ type Handler struct {
 }
 
 type submissionRequest struct {
-	Answers map[string]any `json:"answers"`
+	Answers             map[string]any `json:"answers"`
+	PrivacyAcknowledged bool           `json:"privacyAcknowledged"`
 }
 
 type submissionResponse struct {
-	ID          string         `json:"id"`
-	FormID      string         `json:"formId"`
-	Answers     map[string]any `json:"answers"`
-	SubmittedAt string         `json:"submittedAt"`
+	ID                    string         `json:"id"`
+	FormID                string         `json:"formId"`
+	Answers               map[string]any `json:"answers"`
+	PrivacyAcknowledgedAt string         `json:"privacyAcknowledgedAt"`
+	SubmittedAt           string         `json:"submittedAt"`
 }
 
 type submissionListResponse struct {
@@ -31,10 +33,19 @@ type submissionListResponse struct {
 	Responses []submissionResponse `json:"responses"`
 }
 
+type submissionExportResponse struct {
+	Form       formSummaryResponse  `json:"form"`
+	Responses  []submissionResponse `json:"responses"`
+	ExportedAt string               `json:"exportedAt"`
+}
+
 type formSummaryResponse struct {
-	ID     string          `json:"id"`
-	Title  string          `json:"title"`
-	Fields []fieldResponse `json:"fields"`
+	ID              string          `json:"id"`
+	Title           string          `json:"title"`
+	ControllerEmail *string         `json:"controllerEmail"`
+	PrivacyPurpose  *string         `json:"privacyPurpose"`
+	RetentionPolicy *string         `json:"retentionPolicy"`
+	Fields          []fieldResponse `json:"fields"`
 }
 
 type fieldResponse struct {
@@ -54,6 +65,8 @@ func NewHandler(authService *auth.Service, service *Service) *Handler {
 
 func (handler *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/forms/{formID}/responses", handler.listResponses)
+	mux.HandleFunc("GET /api/forms/{formID}/responses/export", handler.exportResponses)
+	mux.HandleFunc("DELETE /api/forms/{formID}/responses/{responseID}", handler.deleteResponse)
 	mux.HandleFunc("POST /api/public/forms/{slug}/responses", handler.submitResponse)
 }
 
@@ -75,6 +88,39 @@ func (handler *Handler) listResponses(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (handler *Handler) exportResponses(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
+		return
+	}
+
+	form, responses, err := handler.service.ListResponses(r.Context(), user.ID, r.PathValue("formID"))
+	if err != nil {
+		handler.writeServiceError(w, err)
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, submissionExportResponse{
+		Form:       toFormSummaryResponse(form),
+		Responses:  toSubmissionResponses(responses),
+		ExportedAt: time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
+func (handler *Handler) deleteResponse(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
+		return
+	}
+
+	if err := handler.service.DeleteResponse(r.Context(), user.ID, r.PathValue("formID"), r.PathValue("responseID")); err != nil {
+		handler.writeServiceError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (handler *Handler) submitResponse(w http.ResponseWriter, r *http.Request) {
 	var payload submissionRequest
 	if !httpx.DecodeJSON(w, r, &payload) {
@@ -82,7 +128,8 @@ func (handler *Handler) submitResponse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := handler.service.SubmitResponse(r.Context(), r.PathValue("slug"), SubmissionInput{
-		Answers: payload.Answers,
+		Answers:             payload.Answers,
+		PrivacyAcknowledged: payload.PrivacyAcknowledged,
 	})
 	if err != nil {
 		handler.writeServiceError(w, err)
@@ -131,10 +178,11 @@ func toSubmissionResponses(responses []Response) []submissionResponse {
 
 func toSubmissionResponse(response Response) submissionResponse {
 	return submissionResponse{
-		ID:          response.ID,
-		FormID:      response.FormID,
-		Answers:     response.Answers,
-		SubmittedAt: response.SubmittedAt.UTC().Format(time.RFC3339),
+		ID:                    response.ID,
+		FormID:                response.FormID,
+		Answers:               response.Answers,
+		PrivacyAcknowledgedAt: response.PrivacyAcknowledgedAt.UTC().Format(time.RFC3339),
+		SubmittedAt:           response.SubmittedAt.UTC().Format(time.RFC3339),
 	}
 }
 
@@ -151,8 +199,11 @@ func toFormSummaryResponse(form forms.Form) formSummaryResponse {
 	}
 
 	return formSummaryResponse{
-		ID:     form.ID,
-		Title:  form.Title,
-		Fields: fields,
+		ID:              form.ID,
+		Title:           form.Title,
+		ControllerEmail: form.ControllerEmail,
+		PrivacyPurpose:  form.PrivacyPurpose,
+		RetentionPolicy: form.RetentionPolicy,
+		Fields:          fields,
 	}
 }

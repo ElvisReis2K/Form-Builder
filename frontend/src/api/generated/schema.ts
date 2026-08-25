@@ -670,6 +670,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/forms/{formId}/responses/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export responses received by a form */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Form ID */
+                    formId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Exported form responses */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FormSubmissionExportResponse"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Unauthenticated */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Form not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{formId}/responses/{responseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a response received by a form */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Form ID */
+                    formId: string;
+                    /** @description Response ID */
+                    responseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Response deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Unauthenticated */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Response not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/forms/{formId}/unpublish": {
         parameters: {
             query?: never;
@@ -931,16 +1063,20 @@ export interface components {
             };
         };
         Form: {
+            /** Format: email */
+            controllerEmail?: string | null;
             /** Format: date-time */
             createdAt: string;
             description?: string | null;
             fields: components["schemas"]["FormField"][];
             /** Format: uuid */
             id: string;
+            privacyPurpose?: string | null;
             publicSlug?: string | null;
             publicUrl?: string | null;
             /** Format: date-time */
             publishedAt?: string | null;
+            retentionPolicy?: string | null;
             /** @enum {string} */
             status: "draft" | "published";
             title: string;
@@ -976,8 +1112,12 @@ export interface components {
             forms: components["schemas"]["Form"][];
         };
         FormRequest: {
+            /** Format: email */
+            controllerEmail?: string | null;
             description?: string | null;
             fields?: components["schemas"]["FormFieldInput"][];
+            privacyPurpose?: string | null;
+            retentionPolicy?: string | null;
             title: string;
         };
         FormResponseFieldSummary: {
@@ -990,9 +1130,13 @@ export interface components {
             type: "text" | "textarea" | "email" | "number" | "select" | "checkbox";
         };
         FormResponseSummary: {
+            /** Format: email */
+            controllerEmail?: string | null;
             fields: components["schemas"]["FormResponseFieldSummary"][];
             /** Format: uuid */
             id: string;
+            privacyPurpose?: string | null;
+            retentionPolicy?: string | null;
             title: string;
         };
         FormSubmission: {
@@ -1004,7 +1148,15 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** Format: date-time */
+            privacyAcknowledgedAt: string;
+            /** Format: date-time */
             submittedAt: string;
+        };
+        FormSubmissionExportResponse: {
+            /** Format: date-time */
+            exportedAt: string;
+            form: components["schemas"]["FormResponseSummary"];
+            responses: components["schemas"]["FormSubmission"][];
         };
         FormSubmissionListResponse: {
             form: components["schemas"]["FormResponseSummary"];
@@ -1031,6 +1183,7 @@ export interface components {
             answers: {
                 [key: string]: unknown;
             };
+            privacyAcknowledged: boolean;
         };
         User: {
             /** Format: date-time */

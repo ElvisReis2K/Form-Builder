@@ -40,4 +40,7 @@ export const loginPageStyles = {
   googleButton: {
     mt: 0.5,
   },
+  privacyText: {
+    textAlign: 'center',
+  },
 } satisfies Record<string, SxProps<Theme>>;

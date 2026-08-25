@@ -25,9 +25,9 @@ func (repo *Repository) Create(ctx context.Context, formID string, answers map[s
 	}
 
 	response, err := scanResponse(repo.db.QueryRow(ctx, `
-		INSERT INTO form_responses (form_id, answers)
-		VALUES ($1, $2::jsonb)
-		RETURNING id::text, form_id::text, answers, submitted_at
+		INSERT INTO form_responses (form_id, answers, privacy_acknowledged_at)
+		VALUES ($1, $2::jsonb, now())
+		RETURNING id::text, form_id::text, answers, privacy_acknowledged_at, submitted_at
 	`, formID, string(answersJSON)))
 	if err != nil {
 		return Response{}, err
@@ -38,7 +38,7 @@ func (repo *Repository) Create(ctx context.Context, formID string, answers map[s
 
 func (repo *Repository) ListByForm(ctx context.Context, ownerID string, formID string) ([]Response, error) {
 	rows, err := repo.db.Query(ctx, `
-		SELECT response.id::text, response.form_id::text, response.answers, response.submitted_at
+		SELECT response.id::text, response.form_id::text, response.answers, response.privacy_acknowledged_at, response.submitted_at
 		FROM form_responses response
 		INNER JOIN forms form ON form.id = response.form_id
 		WHERE response.form_id = $1 AND form.owner_id = $2
@@ -50,6 +50,26 @@ func (repo *Repository) ListByForm(ctx context.Context, ownerID string, formID s
 	defer rows.Close()
 
 	return scanResponseRows(rows)
+}
+
+func (repo *Repository) DeleteByID(ctx context.Context, ownerID string, formID string, responseID string) error {
+	command, err := repo.db.Exec(ctx, `
+		DELETE FROM form_responses response
+		USING forms form
+		WHERE response.id = $1
+			AND response.form_id = $2
+			AND form.id = response.form_id
+			AND form.owner_id = $3
+	`, responseID, formID, ownerID)
+	if err != nil {
+		return fmt.Errorf("delete form response: %w", err)
+	}
+
+	if command.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }
 
 func scanResponseRows(rows pgx.Rows) ([]Response, error) {
@@ -82,6 +102,7 @@ func scanResponse(row scanner) (Response, error) {
 		&response.ID,
 		&response.FormID,
 		&answersJSON,
+		&response.PrivacyAcknowledgedAt,
 		&response.SubmittedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {

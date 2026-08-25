@@ -24,6 +24,9 @@ export type FormDraft = {
   id: string | null;
   title: string;
   description: string;
+  controllerEmail: string;
+  privacyPurpose: string;
+  retentionPolicy: string;
   fields: FieldDraft[];
 };
 
@@ -34,6 +37,9 @@ export function createBlankDraft(): FormDraft {
     id: null,
     title: 'Formulario sem titulo',
     description: '',
+    controllerEmail: '',
+    privacyPurpose: '',
+    retentionPolicy: '',
     fields: [createFieldDraft()],
   };
 }
@@ -56,6 +62,9 @@ export function formToDraft(form: BuilderForm): FormDraft {
     id: form.id,
     title: form.title,
     description: form.description ?? '',
+    controllerEmail: form.controllerEmail ?? '',
+    privacyPurpose: form.privacyPurpose ?? '',
+    retentionPolicy: form.retentionPolicy ?? '',
     fields: form.fields.map((field) => createFieldDraft(field)),
   };
 }
@@ -64,6 +73,9 @@ export function draftToRequest(draft: FormDraft): FormRequest {
   return {
     title: draft.title,
     description: optionalText(draft.description),
+    controllerEmail: optionalText(draft.controllerEmail),
+    privacyPurpose: optionalText(draft.privacyPurpose),
+    retentionPolicy: optionalText(draft.retentionPolicy),
     fields: draft.fields.map((field) => ({
       type: field.type,
       label: field.label,

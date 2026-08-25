@@ -21,16 +21,19 @@ const (
 )
 
 type Form struct {
-	ID          string
-	OwnerID     string
-	Title       string
-	Description *string
-	Status      FormStatus
-	PublicSlug  *string
-	PublishedAt *time.Time
-	Fields      []Field
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID              string
+	OwnerID         string
+	Title           string
+	Description     *string
+	ControllerEmail *string
+	PrivacyPurpose  *string
+	RetentionPolicy *string
+	Status          FormStatus
+	PublicSlug      *string
+	PublishedAt     *time.Time
+	Fields          []Field
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type Field struct {
@@ -48,9 +51,12 @@ type Field struct {
 }
 
 type FormInput struct {
-	Title       string
-	Description *string
-	Fields      []FieldInput
+	Title           string
+	Description     *string
+	ControllerEmail *string
+	PrivacyPurpose  *string
+	RetentionPolicy *string
+	Fields          []FieldInput
 }
 
 type FieldInput struct {

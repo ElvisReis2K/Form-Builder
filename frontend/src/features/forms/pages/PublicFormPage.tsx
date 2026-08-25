@@ -1,7 +1,9 @@
 import {
   Alert,
   Button,
+  Checkbox,
   FormControlLabel,
+  Link,
   LinearProgress,
   MenuItem,
   Paper,
@@ -12,7 +14,7 @@ import {
 } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { FormEvent, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link as RouterLink, useParams } from 'react-router-dom';
 
 import { getErrorMessage } from '../../../lib/api';
 import { getPublishedForm, submitFormResponse } from '../api/formsApi';
@@ -24,6 +26,7 @@ type AnswerState = Record<string, string | boolean>;
 export default function PublicFormPage() {
   const { slug } = useParams();
   const [answers, setAnswers] = useState<AnswerState>({});
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const formQuery = useQuery({
@@ -34,7 +37,7 @@ export default function PublicFormPage() {
 
   const form = formQuery.data;
   const submitMutation = useMutation({
-    mutationFn: () => submitFormResponse(slug ?? '', { answers }),
+    mutationFn: () => submitFormResponse(slug ?? '', { answers, privacyAcknowledged }),
     onSuccess: () => {
       setSubmitted(true);
     },
@@ -51,6 +54,7 @@ export default function PublicFormPage() {
     }
 
     setAnswers(initialAnswers);
+    setPrivacyAcknowledged(false);
     setSubmitted(false);
   }, [form]);
 
@@ -82,11 +86,42 @@ export default function PublicFormPage() {
               {form.description ? <Typography color="text.secondary">{form.description}</Typography> : null}
             </Stack>
 
+            <Stack sx={formPagesStyles.privacyNotice}>
+              <Typography variant="subtitle2">Aviso de privacidade</Typography>
+              <Typography variant="body2">Finalidade: {form.privacyPurpose ?? 'Nao informada'}</Typography>
+              <Typography variant="body2">Retencao: {form.retentionPolicy ?? 'Nao informada'}</Typography>
+              <Typography variant="body2">Contato do controlador: {form.controllerEmail ?? 'Nao informado'}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Saiba mais na{' '}
+                <Link component={RouterLink} to="/privacidade">
+                  Politica de Privacidade
+                </Link>
+                .
+              </Typography>
+            </Stack>
+
             <Stack sx={formPagesStyles.fieldStack}>
               {form.fields.map((field) => renderField(field, answers, updateAnswer))}
             </Stack>
 
-            <Button type="submit" variant="contained" disabled={submitMutation.isPending} sx={formPagesStyles.submitButton}>
+            <FormControlLabel
+              sx={formPagesStyles.privacyAcknowledgement}
+              control={
+                <Checkbox
+                  checked={privacyAcknowledged}
+                  required
+                  onChange={(_, checked) => setPrivacyAcknowledged(checked)}
+                />
+              }
+              label="Li e entendi o aviso de privacidade deste formulario."
+            />
+
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={submitMutation.isPending || !privacyAcknowledged}
+              sx={formPagesStyles.submitButton}
+            >
               Enviar resposta
             </Button>
           </>

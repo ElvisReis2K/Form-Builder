@@ -25,7 +25,7 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 
 func (repo *Repository) ListByOwner(ctx context.Context, ownerID string) ([]Form, error) {
 	rows, err := repo.db.Query(ctx, `
-		SELECT id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
+		SELECT id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
 		FROM forms
 		WHERE owner_id = $1
 		ORDER BY updated_at DESC
@@ -81,7 +81,7 @@ func (repo *Repository) Create(ctx context.Context, ownerID string, input FormIn
 
 func (repo *Repository) GetByOwner(ctx context.Context, ownerID string, formID string) (Form, error) {
 	form, err := repo.findForm(ctx, `
-		SELECT id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
+		SELECT id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
 		FROM forms
 		WHERE id = $1 AND owner_id = $2
 	`, formID, ownerID)
@@ -100,7 +100,7 @@ func (repo *Repository) GetByOwner(ctx context.Context, ownerID string, formID s
 
 func (repo *Repository) GetPublishedBySlug(ctx context.Context, slug string) (Form, error) {
 	form, err := repo.findForm(ctx, `
-		SELECT id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
+		SELECT id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
 		FROM forms
 		WHERE public_slug = $1 AND status = 'published'
 	`, slug)
@@ -130,10 +130,13 @@ func (repo *Repository) Update(ctx context.Context, ownerID string, formID strin
 		UPDATE forms
 		SET title = $3,
 			description = $4,
+			controller_email = $5,
+			privacy_purpose = $6,
+			retention_policy = $7,
 			updated_at = now()
 		WHERE id = $1 AND owner_id = $2
-		RETURNING id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
-	`, formID, ownerID, input.Title, input.Description))
+		RETURNING id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
+	`, formID, ownerID, input.Title, input.Description, input.ControllerEmail, input.PrivacyPurpose, input.RetentionPolicy))
 	if err != nil {
 		return Form{}, err
 	}
@@ -172,7 +175,7 @@ func (repo *Repository) Publish(ctx context.Context, ownerID string, formID stri
 			published_at = COALESCE(published_at, now()),
 			updated_at = now()
 		WHERE id = $1 AND owner_id = $2
-		RETURNING id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
+		RETURNING id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
 	`, formID, ownerID, slug))
 	if isUniqueViolation(err) {
 		return Form{}, ErrSlugTaken
@@ -197,7 +200,7 @@ func (repo *Repository) Unpublish(ctx context.Context, ownerID string, formID st
 			published_at = NULL,
 			updated_at = now()
 		WHERE id = $1 AND owner_id = $2
-		RETURNING id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
+		RETURNING id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
 	`, formID, ownerID))
 	if err != nil {
 		return Form{}, err
@@ -233,10 +236,10 @@ func (repo *Repository) findForm(ctx context.Context, query string, args ...any)
 
 func insertForm(ctx context.Context, tx pgx.Tx, ownerID string, input FormInput) (Form, error) {
 	return scanForm(tx.QueryRow(ctx, `
-		INSERT INTO forms (owner_id, title, description)
-		VALUES ($1, $2, $3)
-		RETURNING id::text, owner_id::text, title, description, status, public_slug, published_at, created_at, updated_at
-	`, ownerID, input.Title, input.Description))
+		INSERT INTO forms (owner_id, title, description, controller_email, privacy_purpose, retention_policy)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id::text, owner_id::text, title, description, controller_email, privacy_purpose, retention_policy, status, public_slug, published_at, created_at, updated_at
+	`, ownerID, input.Title, input.Description, input.ControllerEmail, input.PrivacyPurpose, input.RetentionPolicy))
 }
 
 func replaceFields(ctx context.Context, tx pgx.Tx, formID string, fields []FieldInput) ([]Field, error) {
@@ -318,6 +321,9 @@ type scanner interface {
 func scanForm(row scanner) (Form, error) {
 	var form Form
 	var description pgtype.Text
+	var controllerEmail pgtype.Text
+	var privacyPurpose pgtype.Text
+	var retentionPolicy pgtype.Text
 	var publicSlug pgtype.Text
 	var publishedAt pgtype.Timestamptz
 
@@ -326,6 +332,9 @@ func scanForm(row scanner) (Form, error) {
 		&form.OwnerID,
 		&form.Title,
 		&description,
+		&controllerEmail,
+		&privacyPurpose,
+		&retentionPolicy,
 		&form.Status,
 		&publicSlug,
 		&publishedAt,
@@ -340,6 +349,9 @@ func scanForm(row scanner) (Form, error) {
 	}
 
 	form.Description = textPtr(description)
+	form.ControllerEmail = textPtr(controllerEmail)
+	form.PrivacyPurpose = textPtr(privacyPurpose)
+	form.RetentionPolicy = textPtr(retentionPolicy)
 	form.PublicSlug = textPtr(publicSlug)
 	form.PublishedAt = timePtr(publishedAt)
 	form.Fields = []Field{}

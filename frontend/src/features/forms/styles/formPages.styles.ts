@@ -174,6 +174,24 @@ export const formPagesStyles = {
     gap: 0.75,
     pb: 1,
   },
+  privacyNotice: {
+    gap: 0.75,
+    border: 1,
+    borderColor: 'divider',
+    borderRadius: 1,
+    bgcolor: '#f9fbfd',
+    p: {
+      xs: 1.5,
+      sm: 2,
+    },
+  },
+  privacyAcknowledgement: {
+    alignItems: 'flex-start',
+    m: 0,
+    '& .MuiFormControlLabel-label': {
+      pt: 1,
+    },
+  },
   submitButton: {
     alignSelf: {
       xs: 'stretch',

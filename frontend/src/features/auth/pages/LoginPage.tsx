@@ -1,7 +1,7 @@
-import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Link, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '../../../lib/api';
 import { googleLoginURL, login, register } from '../api/authApi';
@@ -97,6 +97,14 @@ export default function LoginPage() {
         <Button type="button" variant="outlined" onClick={startGoogleLogin} sx={loginPageStyles.googleButton}>
           Continuar com Google
         </Button>
+
+        <Typography variant="caption" color="text.secondary" sx={loginPageStyles.privacyText}>
+          Ao usar o sistema, consulte a{' '}
+          <Link component={RouterLink} to="/privacidade">
+            Politica de Privacidade
+          </Link>
+          .
+        </Typography>
       </Stack>
     </Paper>
   );
