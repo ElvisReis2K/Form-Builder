@@ -224,6 +224,110 @@
         ],
         "type": "object"
       },
+      "FormResponseFieldSummary": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "type": {
+            "enum": [
+              "text",
+              "textarea",
+              "email",
+              "number",
+              "select",
+              "checkbox"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "type",
+          "label",
+          "required"
+        ],
+        "type": "object"
+      },
+      "FormResponseSummary": {
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FormResponseFieldSummary"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "fields"
+        ],
+        "type": "object"
+      },
+      "FormSubmission": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "formId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "formId",
+          "answers",
+          "submittedAt"
+        ],
+        "type": "object"
+      },
+      "FormSubmissionListResponse": {
+        "properties": {
+          "form": {
+            "$ref": "#/components/schemas/FormResponseSummary"
+          },
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/FormSubmission"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "form",
+          "responses"
+        ],
+        "type": "object"
+      },
       "HealthResponse": {
         "properties": {
           "status": {
@@ -274,6 +378,18 @@
           "name",
           "email",
           "password"
+        ],
+        "type": "object"
+      },
+      "SubmitResponseRequest": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "answers"
         ],
         "type": "object"
       },
@@ -772,6 +888,69 @@
         "summary": "Publish a form and expose a public slug"
       }
     },
+    "/api/forms/{formId}/responses": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Form ID",
+            "in": "path",
+            "name": "formId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormSubmissionListResponse"
+                }
+              }
+            },
+            "description": "Form responses"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Form not found"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "List responses received by a form"
+      }
+    },
     "/api/forms/{formId}/unpublish": {
       "post": {
         "parameters": [
@@ -861,6 +1040,64 @@
           }
         },
         "summary": "Get a published form by public slug"
+      }
+    },
+    "/api/public/forms/{slug}/responses": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Public form slug",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormSubmission"
+                }
+              }
+            },
+            "description": "Submitted response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Form not found"
+          }
+        },
+        "summary": "Submit a response to a published form"
       }
     },
     "/healthz": {

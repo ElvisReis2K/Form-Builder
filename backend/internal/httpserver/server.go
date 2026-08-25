@@ -9,6 +9,7 @@ import (
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/auth"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/config"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/forms"
+	"github.com/ElvisReis2K/Form-Builder/backend/internal/responses"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,7 +17,13 @@ type healthResponse struct {
 	Status string `json:"status"`
 }
 
-func New(cfg config.Config, db *pgxpool.Pool, authHandler *auth.Handler, formsHandler *forms.Handler) *http.Server {
+func New(
+	cfg config.Config,
+	db *pgxpool.Pool,
+	authHandler *auth.Handler,
+	formsHandler *forms.Handler,
+	responsesHandler *responses.Handler,
+) *http.Server {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +54,7 @@ func New(cfg config.Config, db *pgxpool.Pool, authHandler *auth.Handler, formsHa
 
 	authHandler.RegisterRoutes(mux)
 	formsHandler.RegisterRoutes(mux)
+	responsesHandler.RegisterRoutes(mux)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

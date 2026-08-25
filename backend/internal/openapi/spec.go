@@ -135,6 +135,19 @@ func spec() map[string]any {
 					},
 				},
 			},
+			"/api/forms/{formId}/responses": map[string]any{
+				"get": map[string]any{
+					"summary":    "List responses received by a form",
+					"security":   sessionSecurity(),
+					"parameters": []map[string]any{pathParameter("formId", "Form ID")},
+					"responses": map[string]any{
+						"200": jsonResponse("Form responses", "#/components/schemas/FormSubmissionListResponse"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
 			"/api/forms/{formId}/publish": map[string]any{
 				"post": map[string]any{
 					"summary":    "Publish a form and expose a public slug",
@@ -166,6 +179,18 @@ func spec() map[string]any {
 					"parameters": []map[string]any{pathParameter("slug", "Public form slug")},
 					"responses": map[string]any{
 						"200": jsonResponse("Published form", "#/components/schemas/Form"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/public/forms/{slug}/responses": map[string]any{
+				"post": map[string]any{
+					"summary":     "Submit a response to a published form",
+					"parameters":  []map[string]any{pathParameter("slug", "Public form slug")},
+					"requestBody": jsonRequest("#/components/schemas/SubmitResponseRequest"),
+					"responses": map[string]any{
+						"201": jsonResponse("Submitted response", "#/components/schemas/FormSubmission"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
 						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
 					},
 				},
@@ -232,6 +257,10 @@ func spec() map[string]any {
 				"FormListResponse": objectSchema([]string{"forms"}, map[string]any{
 					"forms": arraySchema(refSchema("#/components/schemas/Form")),
 				}),
+				"FormSubmissionListResponse": objectSchema([]string{"form", "responses"}, map[string]any{
+					"form":      refSchema("#/components/schemas/FormResponseSummary"),
+					"responses": arraySchema(refSchema("#/components/schemas/FormSubmission")),
+				}),
 				"Form": objectSchema([]string{"id", "title", "status", "fields", "createdAt", "updatedAt"}, map[string]any{
 					"id": map[string]any{
 						"type":   "string",
@@ -274,6 +303,47 @@ func spec() map[string]any {
 					"placeholder": nullableStringSchema(),
 					"options":     arraySchema(map[string]any{"type": "string"}),
 					"config":      freeObjectSchema(),
+				}),
+				"FormResponseSummary": objectSchema([]string{"id", "title", "fields"}, map[string]any{
+					"id": map[string]any{
+						"type":   "string",
+						"format": "uuid",
+					},
+					"title": map[string]any{
+						"type": "string",
+					},
+					"fields": arraySchema(refSchema("#/components/schemas/FormResponseFieldSummary")),
+				}),
+				"FormResponseFieldSummary": objectSchema([]string{"id", "position", "type", "label", "required"}, map[string]any{
+					"id": map[string]any{
+						"type":   "string",
+						"format": "uuid",
+					},
+					"position": map[string]any{
+						"type": "integer",
+					},
+					"type": fieldTypeSchema(),
+					"label": map[string]any{
+						"type": "string",
+					},
+					"required": map[string]any{
+						"type": "boolean",
+					},
+				}),
+				"FormSubmission": objectSchema([]string{"id", "formId", "answers", "submittedAt"}, map[string]any{
+					"id": map[string]any{
+						"type":   "string",
+						"format": "uuid",
+					},
+					"formId": map[string]any{
+						"type":   "string",
+						"format": "uuid",
+					},
+					"answers":     freeObjectSchema(),
+					"submittedAt": dateTimeSchema(),
+				}),
+				"SubmitResponseRequest": objectSchema([]string{"answers"}, map[string]any{
+					"answers": freeObjectSchema(),
 				}),
 				"FormRequest": objectSchema([]string{"title"}, map[string]any{
 					"title": map[string]any{

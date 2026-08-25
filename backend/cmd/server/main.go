@@ -16,6 +16,7 @@ import (
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/forms"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/httpserver"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/openapi"
+	"github.com/ElvisReis2K/Form-Builder/backend/internal/responses"
 )
 
 func main() {
@@ -62,7 +63,11 @@ func runServer() {
 	formsService := forms.NewService(formsRepo)
 	formsHandler := forms.NewHandler(authService, formsService)
 
-	server := httpserver.New(cfg, db, authHandler, formsHandler)
+	responsesRepo := responses.NewRepository(db)
+	responsesService := responses.NewService(formsRepo, responsesRepo)
+	responsesHandler := responses.NewHandler(authService, responsesService)
+
+	server := httpserver.New(cfg, db, authHandler, formsHandler, responsesHandler)
 
 	serverErrors := make(chan error, 1)
 	go func() {

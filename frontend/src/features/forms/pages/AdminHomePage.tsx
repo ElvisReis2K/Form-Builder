@@ -354,6 +354,11 @@ export default function AdminHomePage() {
                   Open public form
                 </Button>
               ) : null}
+              {hasSavedForm ? (
+                <Button component={RouterLink} to={`/admin/forms/${draft.id}/responses`} variant="text">
+                  Responses
+                </Button>
+              ) : null}
               <Button color="error" variant="text" onClick={deleteSelectedForm} disabled={!hasSavedForm || isBusy}>
                 Delete
               </Button>

@@ -44,3 +44,25 @@ export type FormRequest = {
 export type FormListResponse = {
   forms: BuilderForm[];
 };
+
+export type FormSubmission = {
+  id: string;
+  formId: string;
+  answers: Record<string, unknown>;
+  submittedAt: string;
+};
+
+export type SubmitResponseRequest = {
+  answers: Record<string, unknown>;
+};
+
+export type FormResponseSummary = {
+  id: string;
+  title: string;
+  fields: Pick<FormField, 'id' | 'position' | 'type' | 'label' | 'required'>[];
+};
+
+export type FormSubmissionListResponse = {
+  form: FormResponseSummary;
+  responses: FormSubmission[];
+};

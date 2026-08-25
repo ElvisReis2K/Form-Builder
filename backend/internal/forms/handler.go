@@ -3,7 +3,6 @@ package forms
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/auth"
@@ -66,116 +65,122 @@ func NewHandler(authService *auth.Service, service *Service) *Handler {
 }
 
 func (handler *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/forms", handler.forms)
-	mux.HandleFunc("/api/forms/", handler.form)
-	mux.HandleFunc("/api/public/forms/", handler.publicForm)
+	mux.HandleFunc("GET /api/forms", handler.listForms)
+	mux.HandleFunc("POST /api/forms", handler.createForm)
+	mux.HandleFunc("GET /api/forms/{formID}", handler.getForm)
+	mux.HandleFunc("PUT /api/forms/{formID}", handler.updateForm)
+	mux.HandleFunc("DELETE /api/forms/{formID}", handler.deleteForm)
+	mux.HandleFunc("POST /api/forms/{formID}/publish", handler.publishForm)
+	mux.HandleFunc("POST /api/forms/{formID}/unpublish", handler.unpublishForm)
+	mux.HandleFunc("GET /api/public/forms/{slug}", handler.publicForm)
 }
 
-func (handler *Handler) forms(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) listForms(w http.ResponseWriter, r *http.Request) {
 	user, ok := handler.authenticate(w, r)
 	if !ok {
 		return
 	}
 
-	switch r.Method {
-	case http.MethodGet:
-		forms, err := handler.service.ListForms(r.Context(), user.ID)
-		if err != nil {
-			handler.writeServiceError(w, err)
-			return
-		}
-
-		httpx.WriteJSON(w, http.StatusOK, formListResponse{Forms: toFormResponses(forms)})
-	case http.MethodPost:
-		var payload formRequest
-		if !httpx.DecodeJSON(w, r, &payload) {
-			return
-		}
-
-		form, err := handler.service.CreateForm(r.Context(), user.ID, payload.toInput())
-		if err != nil {
-			handler.writeServiceError(w, err)
-			return
-		}
-
-		httpx.WriteJSON(w, http.StatusCreated, toFormResponse(form))
-	default:
-		w.Header().Set("Allow", "GET, POST")
-		httpx.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method is not allowed")
+	forms, err := handler.service.ListForms(r.Context(), user.ID)
+	if err != nil {
+		handler.writeServiceError(w, err)
+		return
 	}
+
+	httpx.WriteJSON(w, http.StatusOK, formListResponse{Forms: toFormResponses(forms)})
 }
 
-func (handler *Handler) form(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) createForm(w http.ResponseWriter, r *http.Request) {
 	user, ok := handler.authenticate(w, r)
 	if !ok {
 		return
 	}
 
-	formID, action, ok := parseFormPath(r.URL.Path)
-	if !ok {
-		httpx.WriteError(w, http.StatusNotFound, "not_found", "resource not found")
+	var payload formRequest
+	if !httpx.DecodeJSON(w, r, &payload) {
 		return
 	}
 
-	if action != "" {
-		handler.formAction(w, r, user.ID, formID, action)
+	form, err := handler.service.CreateForm(r.Context(), user.ID, payload.toInput())
+	if err != nil {
+		handler.writeServiceError(w, err)
 		return
 	}
 
-	switch r.Method {
-	case http.MethodGet:
-		form, err := handler.service.GetForm(r.Context(), user.ID, formID)
-		if err != nil {
-			handler.writeServiceError(w, err)
-			return
-		}
-
-		httpx.WriteJSON(w, http.StatusOK, toFormResponse(form))
-	case http.MethodPut:
-		var payload formRequest
-		if !httpx.DecodeJSON(w, r, &payload) {
-			return
-		}
-
-		form, err := handler.service.UpdateForm(r.Context(), user.ID, formID, payload.toInput())
-		if err != nil {
-			handler.writeServiceError(w, err)
-			return
-		}
-
-		httpx.WriteJSON(w, http.StatusOK, toFormResponse(form))
-	case http.MethodDelete:
-		if err := handler.service.DeleteForm(r.Context(), user.ID, formID); err != nil {
-			handler.writeServiceError(w, err)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-	default:
-		w.Header().Set("Allow", "GET, PUT, DELETE")
-		httpx.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method is not allowed")
-	}
+	httpx.WriteJSON(w, http.StatusCreated, toFormResponse(form))
 }
 
-func (handler *Handler) formAction(w http.ResponseWriter, r *http.Request, ownerID string, formID string, action string) {
-	if action != "publish" && action != "unpublish" {
-		httpx.WriteError(w, http.StatusNotFound, "not_found", "resource not found")
+func (handler *Handler) getForm(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
 		return
 	}
 
-	if !httpx.RequireMethod(w, r, http.MethodPost) {
+	form, err := handler.service.GetForm(r.Context(), user.ID, r.PathValue("formID"))
+	if err != nil {
+		handler.writeServiceError(w, err)
 		return
 	}
 
-	var form Form
-	var err error
-	switch action {
-	case "publish":
-		form, err = handler.service.PublishForm(r.Context(), ownerID, formID)
-	case "unpublish":
-		form, err = handler.service.UnpublishForm(r.Context(), ownerID, formID)
+	httpx.WriteJSON(w, http.StatusOK, toFormResponse(form))
+}
+
+func (handler *Handler) updateForm(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
+		return
 	}
 
+	var payload formRequest
+	if !httpx.DecodeJSON(w, r, &payload) {
+		return
+	}
+
+	form, err := handler.service.UpdateForm(r.Context(), user.ID, r.PathValue("formID"), payload.toInput())
+	if err != nil {
+		handler.writeServiceError(w, err)
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, toFormResponse(form))
+}
+
+func (handler *Handler) deleteForm(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
+		return
+	}
+
+	if err := handler.service.DeleteForm(r.Context(), user.ID, r.PathValue("formID")); err != nil {
+		handler.writeServiceError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (handler *Handler) publishForm(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
+		return
+	}
+
+	form, err := handler.service.PublishForm(r.Context(), user.ID, r.PathValue("formID"))
+	if err != nil {
+		handler.writeServiceError(w, err)
+		return
+	}
+
+	httpx.WriteJSON(w, http.StatusOK, toFormResponse(form))
+}
+
+func (handler *Handler) unpublishForm(w http.ResponseWriter, r *http.Request) {
+	user, ok := handler.authenticate(w, r)
+	if !ok {
+		return
+	}
+
+	form, err := handler.service.UnpublishForm(r.Context(), user.ID, r.PathValue("formID"))
 	if err != nil {
 		handler.writeServiceError(w, err)
 		return
@@ -185,17 +190,7 @@ func (handler *Handler) formAction(w http.ResponseWriter, r *http.Request, owner
 }
 
 func (handler *Handler) publicForm(w http.ResponseWriter, r *http.Request) {
-	if !httpx.RequireMethod(w, r, http.MethodGet) {
-		return
-	}
-
-	slug := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/public/forms/"), "/")
-	if slug == "" || strings.Contains(slug, "/") {
-		httpx.WriteError(w, http.StatusNotFound, "not_found", "resource not found")
-		return
-	}
-
-	form, err := handler.service.GetPublishedForm(r.Context(), slug)
+	form, err := handler.service.GetPublishedForm(r.Context(), r.PathValue("slug"))
 	if err != nil {
 		handler.writeServiceError(w, err)
 		return
@@ -229,23 +224,6 @@ func (handler *Handler) writeServiceError(w http.ResponseWriter, err error) {
 		httpx.WriteError(w, http.StatusNotFound, "not_found", "form not found")
 	default:
 		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "an unexpected error occurred")
-	}
-}
-
-func parseFormPath(path string) (string, string, bool) {
-	value := strings.Trim(strings.TrimPrefix(path, "/api/forms/"), "/")
-	if value == "" {
-		return "", "", false
-	}
-
-	parts := strings.Split(value, "/")
-	switch len(parts) {
-	case 1:
-		return parts[0], "", true
-	case 2:
-		return parts[0], parts[1], true
-	default:
-		return "", "", false
 	}
 }
 

@@ -1,5 +1,12 @@
 import { apiRequest } from '../../../lib/api';
-import type { BuilderForm, FormListResponse, FormRequest } from '../types';
+import type {
+  BuilderForm,
+  FormListResponse,
+  FormRequest,
+  FormSubmission,
+  FormSubmissionListResponse,
+  SubmitResponseRequest,
+} from '../types';
 
 export function listForms() {
   return apiRequest<FormListResponse>('/api/forms');
@@ -39,4 +46,15 @@ export function unpublishForm(formId: string) {
 
 export function getPublishedForm(slug: string) {
   return apiRequest<BuilderForm>(`/api/public/forms/${slug}`);
+}
+
+export function submitFormResponse(slug: string, input: SubmitResponseRequest) {
+  return apiRequest<FormSubmission>(`/api/public/forms/${slug}/responses`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function listFormResponses(formId: string) {
+  return apiRequest<FormSubmissionListResponse>(`/api/forms/${formId}/responses`);
 }
