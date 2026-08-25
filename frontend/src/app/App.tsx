@@ -11,7 +11,7 @@ export default function App() {
       <AppBar position="static" color="default" elevation={0}>
         <Toolbar sx={appStyles.toolbar}>
           <Typography variant="h6" component="div" sx={appStyles.brand}>
-            Form Builder
+            Construtor de Formularios
           </Typography>
           <Stack sx={appStyles.nav}>
             {navItems.map((item) => (

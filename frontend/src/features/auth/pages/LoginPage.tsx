@@ -51,16 +51,16 @@ export default function LoginPage() {
     <Paper sx={loginPageStyles.panel}>
       <Stack component="form" onSubmit={handleSubmit} sx={loginPageStyles.form}>
         <Stack sx={loginPageStyles.header}>
-          <Typography variant="h5">{mode === 'login' ? 'Admin login' : 'Create account'}</Typography>
-          <Typography color="text.secondary">Form Builder</Typography>
+          <Typography variant="h5">{mode === 'login' ? 'Entrar na administracao' : 'Criar conta'}</Typography>
+          <Typography color="text.secondary">Construtor de Formularios</Typography>
         </Stack>
 
         {authMutation.error ? <Alert severity="error">{getErrorMessage(authMutation.error)}</Alert> : null}
-        {oauthError ? <Alert severity="error">Google sign in failed. Please try again.</Alert> : null}
+        {oauthError ? <Alert severity="error">Falha ao entrar com Google. Tente novamente.</Alert> : null}
 
         {mode === 'register' ? (
           <TextField
-            label="Name"
+            label="Nome"
             value={name}
             onChange={(event) => setName(event.target.value)}
             autoComplete="name"
@@ -69,7 +69,7 @@ export default function LoginPage() {
         ) : null}
 
         <TextField
-          label="Email"
+          label="E-mail"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -77,7 +77,7 @@ export default function LoginPage() {
           required
         />
         <TextField
-          label="Password"
+          label="Senha"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -87,15 +87,15 @@ export default function LoginPage() {
 
         <Stack sx={loginPageStyles.actions}>
           <Button type="submit" variant="contained" disabled={authMutation.isPending}>
-            {mode === 'login' ? 'Sign in' : 'Create'}
+            {mode === 'login' ? 'Entrar' : 'Criar'}
           </Button>
           <Button type="button" variant="text" onClick={toggleMode}>
-            {mode === 'login' ? 'Create account' : 'Use existing account'}
+            {mode === 'login' ? 'Criar conta' : 'Usar conta existente'}
           </Button>
         </Stack>
 
         <Button type="button" variant="outlined" onClick={startGoogleLogin}>
-          Continue with Google
+          Continuar com Google
         </Button>
       </Stack>
     </Paper>

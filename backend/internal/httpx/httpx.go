@@ -21,7 +21,7 @@ func RequireMethod(w http.ResponseWriter, r *http.Request, method string) bool {
 	}
 
 	w.Header().Set("Allow", method)
-	WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method is not allowed")
+	WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "metodo nao permitido")
 	return false
 }
 
@@ -35,12 +35,12 @@ func DecodeJSON(w http.ResponseWriter, r *http.Request, target any) bool {
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(target); err != nil {
-		WriteError(w, http.StatusBadRequest, "invalid_request", "request body must be valid JSON")
+		WriteError(w, http.StatusBadRequest, "invalid_request", "o corpo da requisicao deve ser um JSON valido")
 		return false
 	}
 
 	if err := decoder.Decode(&struct{}{}); err != io.EOF {
-		WriteError(w, http.StatusBadRequest, "invalid_request", "request body must contain a single JSON object")
+		WriteError(w, http.StatusBadRequest, "invalid_request", "o corpo da requisicao deve conter um unico objeto JSON")
 		return false
 	}
 

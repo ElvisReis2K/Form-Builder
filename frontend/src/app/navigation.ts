@@ -1,4 +1,4 @@
 export const navItems = [
-  { label: 'Sign in', to: '/' },
-  { label: 'Admin', to: '/admin' },
+  { label: 'Entrar', to: '/' },
+  { label: 'Administracao', to: '/admin' },
 ] as const;

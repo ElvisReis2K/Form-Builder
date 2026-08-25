@@ -3,12 +3,12 @@ import type { BuilderForm, FieldType, FormField, FormRequest } from '../types';
 export const fieldTypes: FieldType[] = ['text', 'textarea', 'email', 'number', 'select', 'checkbox'];
 
 export const fieldTypeLabels: Record<FieldType, string> = {
-  text: 'Short text',
-  textarea: 'Long text',
-  email: 'Email',
-  number: 'Number',
-  select: 'Select',
-  checkbox: 'Checkbox',
+  text: 'Texto curto',
+  textarea: 'Texto longo',
+  email: 'E-mail',
+  number: 'Numero',
+  select: 'Selecao',
+  checkbox: 'Caixa de selecao',
 };
 
 export type FieldDraft = {
@@ -32,7 +32,7 @@ let draftSequence = 0;
 export function createBlankDraft(): FormDraft {
   return {
     id: null,
-    title: 'Untitled form',
+    title: 'Formulario sem titulo',
     description: '',
     fields: [createFieldDraft()],
   };

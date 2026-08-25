@@ -34,7 +34,7 @@ export default function FormResponsesPage() {
   return (
     <Stack sx={responsesPageStyles.pageStack}>
       <Stack sx={responsesPageStyles.header}>
-        <Typography variant="h4">Responses</Typography>
+        <Typography variant="h4">Respostas</Typography>
         {form ? <Typography color="text.secondary">{form.title}</Typography> : null}
       </Stack>
 
@@ -47,7 +47,7 @@ export default function FormResponsesPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Submitted at</TableCell>
+                  <TableCell>Enviada em</TableCell>
                   {form.fields.map((field) => (
                     <TableCell key={field.id}>{field.label}</TableCell>
                   ))}
@@ -67,8 +67,8 @@ export default function FormResponsesPage() {
           </TableContainer>
         ) : (
           <Stack sx={responsesPageStyles.emptyState}>
-            <Typography variant="h6">No responses yet</Typography>
-            <Typography color="text.secondary">Published forms will show submissions here.</Typography>
+            <Typography variant="h6">Nenhuma resposta ainda</Typography>
+            <Typography color="text.secondary">As respostas de formularios publicados aparecerao aqui.</Typography>
           </Stack>
         )}
       </Paper>
@@ -83,7 +83,7 @@ function formatAnswer(response: FormSubmission, fieldId: string) {
   }
 
   if (typeof value === 'boolean') {
-    return value ? 'Yes' : 'No';
+    return value ? 'Sim' : 'Nao';
   }
 
   return String(value);

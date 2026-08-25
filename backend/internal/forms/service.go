@@ -77,7 +77,7 @@ func (service *Service) PublishForm(ctx context.Context, ownerID string, formID 
 	}
 
 	if len(form.Fields) == 0 {
-		return Form{}, ValidationError{Message: "form must have at least one field before publishing"}
+		return Form{}, ValidationError{Message: "o formulario deve ter pelo menos um campo antes da publicacao"}
 	}
 
 	for attempt := 0; attempt < 5; attempt++ {
@@ -111,7 +111,7 @@ func (service *Service) UnpublishForm(ctx context.Context, ownerID string, formI
 func (service *Service) GetPublishedForm(ctx context.Context, slug string) (Form, error) {
 	slug = strings.TrimSpace(slug)
 	if slug == "" {
-		return Form{}, ValidationError{Message: "slug is required"}
+		return Form{}, ValidationError{Message: "slug e obrigatorio"}
 	}
 
 	return service.repo.GetPublishedBySlug(ctx, slug)
@@ -120,19 +120,19 @@ func (service *Service) GetPublishedForm(ctx context.Context, slug string) (Form
 func normalizeFormInput(input FormInput) (FormInput, error) {
 	title := strings.TrimSpace(input.Title)
 	if title == "" {
-		return FormInput{}, ValidationError{Message: "title is required"}
+		return FormInput{}, ValidationError{Message: "titulo e obrigatorio"}
 	}
 	if len(title) > maxTitleLength {
-		return FormInput{}, ValidationError{Message: "title is too long"}
+		return FormInput{}, ValidationError{Message: "titulo muito longo"}
 	}
 
 	description := normalizeOptionalString(input.Description)
 	if description != nil && len(*description) > maxDescriptionLength {
-		return FormInput{}, ValidationError{Message: "description is too long"}
+		return FormInput{}, ValidationError{Message: "descricao muito longa"}
 	}
 
 	if len(input.Fields) > maxFieldsPerForm {
-		return FormInput{}, ValidationError{Message: "form has too many fields"}
+		return FormInput{}, ValidationError{Message: "formulario tem campos demais"}
 	}
 
 	fields := make([]FieldInput, 0, len(input.Fields))
@@ -154,25 +154,25 @@ func normalizeFormInput(input FormInput) (FormInput, error) {
 
 func normalizeFieldInput(input FieldInput) (FieldInput, error) {
 	if !allowedFieldType(input.Type) {
-		return FieldInput{}, ValidationError{Message: "field type is invalid"}
+		return FieldInput{}, ValidationError{Message: "tipo de campo invalido"}
 	}
 
 	label := strings.TrimSpace(input.Label)
 	if label == "" {
-		return FieldInput{}, ValidationError{Message: "field label is required"}
+		return FieldInput{}, ValidationError{Message: "rotulo do campo e obrigatorio"}
 	}
 	if len(label) > maxLabelLength {
-		return FieldInput{}, ValidationError{Message: "field label is too long"}
+		return FieldInput{}, ValidationError{Message: "rotulo do campo muito longo"}
 	}
 
 	placeholder := normalizeOptionalString(input.Placeholder)
 	if placeholder != nil && len(*placeholder) > maxPlaceholderLength {
-		return FieldInput{}, ValidationError{Message: "field placeholder is too long"}
+		return FieldInput{}, ValidationError{Message: "texto de ajuda do campo muito longo"}
 	}
 
 	options := normalizeOptions(input.Options)
 	if input.Type == FieldTypeSelect && len(options) == 0 {
-		return FieldInput{}, ValidationError{Message: "select fields must have at least one option"}
+		return FieldInput{}, ValidationError{Message: "campos de selecao devem ter pelo menos uma opcao"}
 	}
 
 	config := input.Config
@@ -231,7 +231,7 @@ func normalizeOptions(options []string) []string {
 
 func validateID(id string) error {
 	if !uuidPattern.MatchString(strings.TrimSpace(id)) {
-		return ValidationError{Message: "form id is invalid"}
+		return ValidationError{Message: "id do formulario invalido"}
 	}
 
 	return nil

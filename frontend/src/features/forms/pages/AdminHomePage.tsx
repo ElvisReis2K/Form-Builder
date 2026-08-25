@@ -23,7 +23,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { getErrorMessage } from '../../../lib/api';
 import { createForm, deleteForm, listForms, publishForm, unpublishForm, updateForm } from '../api/formsApi';
 import { formPagesStyles } from '../styles/formPages.styles';
-import type { FieldType } from '../types';
+import type { FieldType, FormStatus } from '../types';
 import {
   createBlankDraft,
   createFieldDraft,
@@ -36,6 +36,10 @@ import {
 } from '../utils/formDraft';
 
 const formsQueryKey = ['forms'];
+const statusLabels: Record<FormStatus, string> = {
+  draft: 'Rascunho',
+  published: 'Publicado',
+};
 
 export default function AdminHomePage() {
   const queryClient = useQueryClient();
@@ -158,7 +162,7 @@ export default function AdminHomePage() {
   }
 
   function deleteSelectedForm() {
-    if (draft.id !== null && window.confirm('Delete this form?')) {
+    if (draft.id !== null && window.confirm('Excluir este formulario?')) {
       deleteMutation.mutate(draft.id);
     }
   }
@@ -203,11 +207,11 @@ export default function AdminHomePage() {
     <Stack sx={formPagesStyles.pageStack}>
       <Stack sx={formPagesStyles.header}>
         <Stack sx={formPagesStyles.titleBlock}>
-          <Typography variant="h4">Forms</Typography>
-          <Typography color="text.secondary">Admin workspace</Typography>
+          <Typography variant="h4">Formularios</Typography>
+          <Typography color="text.secondary">Area administrativa</Typography>
         </Stack>
         <Button variant="contained" onClick={startNewForm}>
-          New form
+          Novo formulario
         </Button>
       </Stack>
 
@@ -217,7 +221,7 @@ export default function AdminHomePage() {
       <Box sx={formPagesStyles.workspace}>
         <Paper sx={formPagesStyles.sidebarPanel}>
           <Stack sx={formPagesStyles.sidebarHeader}>
-            <Typography variant="subtitle1">Saved forms</Typography>
+            <Typography variant="subtitle1">Formularios salvos</Typography>
             <Chip label={forms.length} size="small" />
           </Stack>
           <Divider />
@@ -228,8 +232,12 @@ export default function AdminHomePage() {
                 selected={!isCreating && selectedFormId === form.id}
                 onClick={() => selectForm(form.id)}
               >
-                <ListItemText primary={form.title} secondary={`${form.fields.length} fields`} />
-                <Chip label={form.status} size="small" color={form.status === 'published' ? 'success' : 'default'} />
+                <ListItemText primary={form.title} secondary={formatFieldCount(form.fields.length)} />
+                <Chip
+                  label={statusLabels[form.status]}
+                  size="small"
+                  color={form.status === 'published' ? 'success' : 'default'}
+                />
               </ListItemButton>
             ))}
           </List>
@@ -239,24 +247,24 @@ export default function AdminHomePage() {
           <Stack sx={formPagesStyles.editorStack}>
             <Stack sx={formPagesStyles.editorHeader}>
               <Stack sx={formPagesStyles.titleBlock}>
-                <Typography variant="h5">{isCreating ? 'New form' : 'Form editor'}</Typography>
-                <Typography color="text.secondary">{hasSavedForm ? draft.id : 'Draft not saved'}</Typography>
+                <Typography variant="h5">{isCreating ? 'Novo formulario' : 'Editor de formulario'}</Typography>
+                <Typography color="text.secondary">{hasSavedForm ? draft.id : 'Rascunho nao salvo'}</Typography>
               </Stack>
               <Chip
-                label={hasSavedForm ? selectedStatus : 'draft'}
+                label={hasSavedForm ? statusLabels[selectedStatus] : statusLabels.draft}
                 color={selectedStatus === 'published' ? 'success' : 'default'}
               />
             </Stack>
 
             <Box sx={formPagesStyles.formGrid}>
               <TextField
-                label="Title"
+                label="Titulo"
                 value={draft.title}
                 onChange={(event) => updateDraft({ title: event.target.value })}
                 required
               />
               <TextField
-                label="Description"
+                label="Descricao"
                 value={draft.description}
                 onChange={(event) => updateDraft({ description: event.target.value })}
                 multiline
@@ -267,9 +275,9 @@ export default function AdminHomePage() {
             <Divider />
 
             <Stack sx={formPagesStyles.sectionHeader}>
-              <Typography variant="h6">Fields</Typography>
+              <Typography variant="h6">Campos</Typography>
               <Button variant="outlined" onClick={addField}>
-                Add field
+                Adicionar campo
               </Button>
             </Stack>
 
@@ -277,16 +285,16 @@ export default function AdminHomePage() {
               {draft.fields.map((field, index) => (
                 <Stack key={field.clientId} sx={formPagesStyles.fieldEditor}>
                   <Stack sx={formPagesStyles.fieldHeader}>
-                    <Typography variant="subtitle2">Field {index + 1}</Typography>
+                    <Typography variant="subtitle2">Campo {index + 1}</Typography>
                     <Button variant="text" color="error" onClick={() => removeField(field.clientId)}>
-                      Remove
+                      Remover
                     </Button>
                   </Stack>
 
                   <Box sx={formPagesStyles.fieldGrid}>
                     <TextField
                       select
-                      label="Type"
+                      label="Tipo"
                       value={field.type}
                       onChange={(event) => updateField(field.clientId, { type: event.target.value as FieldType })}
                       size="small"
@@ -298,14 +306,14 @@ export default function AdminHomePage() {
                       ))}
                     </TextField>
                     <TextField
-                      label="Label"
+                      label="Rotulo"
                       value={field.label}
                       onChange={(event) => updateField(field.clientId, { label: event.target.value })}
                       size="small"
                       required
                     />
                     <TextField
-                      label="Placeholder"
+                      label="Texto de ajuda"
                       value={field.placeholder}
                       onChange={(event) => updateField(field.clientId, { placeholder: event.target.value })}
                       size="small"
@@ -317,13 +325,13 @@ export default function AdminHomePage() {
                           onChange={(_, checked) => updateField(field.clientId, { required: checked })}
                         />
                       }
-                      label="Required"
+                      label="Obrigatorio"
                     />
                   </Box>
 
                   {field.type === 'select' ? (
                     <TextField
-                      label="Options"
+                      label="Opcoes"
                       value={field.optionsText}
                       onChange={(event) => updateField(field.clientId, { optionsText: event.target.value })}
                       multiline
@@ -338,29 +346,29 @@ export default function AdminHomePage() {
 
             <Stack sx={formPagesStyles.actionBar}>
               <Button variant="contained" onClick={saveForm} disabled={isBusy || draft.title.trim() === ''}>
-                Save
+                Salvar
               </Button>
               {selectedStatus === 'published' ? (
                 <Button variant="outlined" onClick={unpublishSelectedForm} disabled={!hasSavedForm || isBusy}>
-                  Unpublish
+                  Despublicar
                 </Button>
               ) : (
                 <Button variant="outlined" onClick={publishSelectedForm} disabled={!hasSavedForm || isBusy}>
-                  Publish
+                  Publicar
                 </Button>
               )}
               {selectedForm?.publicUrl ? (
                 <Button component={RouterLink} to={selectedForm.publicUrl} variant="text">
-                  Open public form
+                  Abrir formulario publico
                 </Button>
               ) : null}
               {hasSavedForm ? (
                 <Button component={RouterLink} to={`/admin/forms/${draft.id}/responses`} variant="text">
-                  Responses
+                  Respostas
                 </Button>
               ) : null}
               <Button color="error" variant="text" onClick={deleteSelectedForm} disabled={!hasSavedForm || isBusy}>
-                Delete
+                Excluir
               </Button>
             </Stack>
           </Stack>
@@ -368,4 +376,8 @@ export default function AdminHomePage() {
       </Box>
     </Stack>
   );
+}
+
+function formatFieldCount(count: number) {
+  return `${count} ${count === 1 ? 'campo' : 'campos'}`;
 }

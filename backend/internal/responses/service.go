@@ -29,7 +29,7 @@ func NewService(formsRepo *forms.Repository, repo *Repository) *Service {
 func (service *Service) SubmitResponse(ctx context.Context, slug string, input SubmissionInput) (Response, error) {
 	slug = strings.TrimSpace(slug)
 	if slug == "" {
-		return Response{}, ValidationError{Message: "form slug is required"}
+		return Response{}, ValidationError{Message: "slug do formulario e obrigatorio"}
 	}
 
 	form, err := service.formsRepo.GetPublishedBySlug(ctx, slug)
@@ -85,7 +85,7 @@ func validateAnswers(form forms.Form, answers map[string]any) (map[string]any, e
 
 	for fieldID := range answers {
 		if _, ok := fieldsByID[fieldID]; !ok {
-			return nil, ValidationError{Message: "answer field is invalid"}
+			return nil, ValidationError{Message: "campo da resposta invalido"}
 		}
 	}
 
@@ -94,7 +94,7 @@ func validateAnswers(form forms.Form, answers map[string]any) (map[string]any, e
 		value, hasValue := answers[field.ID]
 		if !hasValue || isEmptyAnswer(field, value) {
 			if field.Required {
-				return nil, ValidationError{Message: fmt.Sprintf("%s is required", field.Label)}
+				return nil, ValidationError{Message: fmt.Sprintf("%s e obrigatorio", field.Label)}
 			}
 
 			continue
@@ -124,7 +124,7 @@ func normalizeAnswer(field forms.Field, value any) (any, error) {
 		text := answer.(string)
 		parsed, err := mail.ParseAddress(text)
 		if err != nil || parsed.Address != text {
-			return nil, ValidationError{Message: fmt.Sprintf("%s must be a valid email", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um e-mail valido", field.Label)}
 		}
 
 		return text, nil
@@ -143,32 +143,32 @@ func normalizeAnswer(field forms.Field, value any) (any, error) {
 			}
 		}
 
-		return nil, ValidationError{Message: fmt.Sprintf("%s must be one of the available options", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser uma das opcoes disponiveis", field.Label)}
 	case forms.FieldTypeCheckbox:
 		answer, ok := value.(bool)
 		if !ok {
-			return nil, ValidationError{Message: fmt.Sprintf("%s must be true or false", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser verdadeiro ou falso", field.Label)}
 		}
 
 		if field.Required && !answer {
-			return nil, ValidationError{Message: fmt.Sprintf("%s is required", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s e obrigatorio", field.Label)}
 		}
 
 		return answer, nil
 	default:
-		return nil, ValidationError{Message: "field type is invalid"}
+		return nil, ValidationError{Message: "tipo de campo invalido"}
 	}
 }
 
 func normalizeTextAnswer(field forms.Field, value any) (any, error) {
 	text, ok := value.(string)
 	if !ok {
-		return nil, ValidationError{Message: fmt.Sprintf("%s must be text", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser texto", field.Label)}
 	}
 
 	text = strings.TrimSpace(text)
 	if len(text) > maxTextAnswerLength {
-		return nil, ValidationError{Message: fmt.Sprintf("%s is too long", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s esta muito longo", field.Label)}
 	}
 
 	return text, nil
@@ -178,27 +178,27 @@ func normalizeNumberAnswer(field forms.Field, value any) (any, error) {
 	switch number := value.(type) {
 	case float64:
 		if math.IsNaN(number) || math.IsInf(number, 0) {
-			return nil, ValidationError{Message: fmt.Sprintf("%s must be a valid number", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
 		}
 
 		return number, nil
 	case string:
 		number = strings.TrimSpace(number)
 		if number == "" {
-			return nil, ValidationError{Message: fmt.Sprintf("%s is required", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s e obrigatorio", field.Label)}
 		}
 
 		parsed, err := parseNumber(number)
 		if err != nil {
-			return nil, ValidationError{Message: fmt.Sprintf("%s must be a valid number", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
 		}
 		if math.IsNaN(parsed) || math.IsInf(parsed, 0) {
-			return nil, ValidationError{Message: fmt.Sprintf("%s must be a valid number", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
 		}
 
 		return parsed, nil
 	default:
-		return nil, ValidationError{Message: fmt.Sprintf("%s must be a valid number", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
 	}
 }
 

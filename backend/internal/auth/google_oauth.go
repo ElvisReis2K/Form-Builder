@@ -80,7 +80,7 @@ func (oauth *GoogleOAuth) AuthCodeURL(state string) string {
 func (oauth *GoogleOAuth) Exchange(ctx context.Context, code string) (GoogleProfile, error) {
 	code = strings.TrimSpace(code)
 	if code == "" {
-		return GoogleProfile{}, ValidationError{Message: "authorization code is required"}
+		return GoogleProfile{}, ValidationError{Message: "codigo de autorizacao obrigatorio"}
 	}
 
 	token, err := oauth.exchangeCode(ctx, code)
@@ -157,13 +157,13 @@ func (oauth *GoogleOAuth) fetchProfile(ctx context.Context, accessToken string) 
 		Name:          strings.TrimSpace(payload.Name),
 	}
 	if profile.Subject == "" {
-		return GoogleProfile{}, ValidationError{Message: "google profile subject is required"}
+		return GoogleProfile{}, ValidationError{Message: "identificador do perfil Google e obrigatorio"}
 	}
 	if err := validateEmail(profile.Email); err != nil {
-		return GoogleProfile{}, ValidationError{Message: "google profile email is required"}
+		return GoogleProfile{}, ValidationError{Message: "e-mail do perfil Google e obrigatorio"}
 	}
 	if !profile.EmailVerified {
-		return GoogleProfile{}, ValidationError{Message: "google profile email must be verified"}
+		return GoogleProfile{}, ValidationError{Message: "e-mail do perfil Google deve estar verificado"}
 	}
 
 	return profile, nil

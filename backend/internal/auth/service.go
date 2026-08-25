@@ -42,7 +42,7 @@ func (service *Service) Register(ctx context.Context, input RegisterInput) (Auth
 	email := normalizeEmail(input.Email)
 
 	if name == "" {
-		return AuthResult{}, ValidationError{Message: "name is required"}
+		return AuthResult{}, ValidationError{Message: "nome e obrigatorio"}
 	}
 
 	if err := validateEmail(email); err != nil {
@@ -100,7 +100,7 @@ func (service *Service) LoginWithGoogle(ctx context.Context, input GoogleIdentit
 	name := strings.TrimSpace(input.Name)
 
 	if subject == "" {
-		return AuthResult{}, ValidationError{Message: "google subject is required"}
+		return AuthResult{}, ValidationError{Message: "identificador do Google e obrigatorio"}
 	}
 
 	if err := validateEmail(email); err != nil {
@@ -217,7 +217,7 @@ func normalizeEmail(email string) string {
 
 func validateEmail(email string) error {
 	if !emailPattern.MatchString(email) {
-		return ValidationError{Message: "a valid email is required"}
+		return ValidationError{Message: "informe um e-mail valido"}
 	}
 
 	return nil
@@ -225,11 +225,11 @@ func validateEmail(email string) error {
 
 func validatePassword(password string) error {
 	if len(password) < minPasswordLength {
-		return ValidationError{Message: "password must have at least 8 characters"}
+		return ValidationError{Message: "a senha deve ter pelo menos 8 caracteres"}
 	}
 
 	if len([]byte(password)) > maxPasswordBytes {
-		return ValidationError{Message: "password must have at most 72 bytes"}
+		return ValidationError{Message: "a senha deve ter no maximo 72 bytes"}
 	}
 
 	return nil
@@ -238,7 +238,7 @@ func validatePassword(password string) error {
 func fallbackNameFromEmail(email string) string {
 	name, _, ok := strings.Cut(email, "@")
 	if !ok || strings.TrimSpace(name) == "" {
-		return "Google user"
+		return "Usuario Google"
 	}
 
 	return name

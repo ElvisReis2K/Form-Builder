@@ -73,7 +73,7 @@ export default function PublicFormPage() {
         {formQuery.isFetching || submitMutation.isPending ? <LinearProgress sx={formPagesStyles.loadingBar} /> : null}
         {formQuery.error ? <Alert severity="error">{getErrorMessage(formQuery.error)}</Alert> : null}
         {submitMutation.error ? <Alert severity="error">{getErrorMessage(submitMutation.error)}</Alert> : null}
-        {submitted ? <Alert severity="success">Response submitted.</Alert> : null}
+        {submitted ? <Alert severity="success">Resposta enviada.</Alert> : null}
 
         {form ? (
           <>
@@ -87,7 +87,7 @@ export default function PublicFormPage() {
             </Stack>
 
             <Button type="submit" variant="contained" disabled={submitMutation.isPending}>
-              Submit response
+              Enviar resposta
             </Button>
           </>
         ) : null}
@@ -127,7 +127,7 @@ function renderField(
         value={String(answers[field.id] ?? '')}
         onChange={(event) => updateAnswer(field.id, event.target.value)}
       >
-        <MenuItem value="">Select an option</MenuItem>
+        <MenuItem value="">Selecione uma opcao</MenuItem>
         {field.options.map((option) => (
           <MenuItem key={option} value={option}>
             {option}

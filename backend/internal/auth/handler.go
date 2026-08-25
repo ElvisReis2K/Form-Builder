@@ -137,7 +137,7 @@ func (handler *Handler) me(w http.ResponseWriter, r *http.Request) {
 
 	token, ok := SessionToken(r)
 	if !ok {
-		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "authentication is required")
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticacao obrigatoria")
 		return
 	}
 
@@ -152,13 +152,13 @@ func (handler *Handler) me(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) googleStart(w http.ResponseWriter, r *http.Request) {
 	if handler.googleOAuth == nil || !handler.googleOAuth.Configured() {
-		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "google oauth is not configured")
+		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google nao configurado")
 		return
 	}
 
 	state, err := newSessionToken()
 	if err != nil {
-		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "an unexpected error occurred")
+		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "ocorreu um erro inesperado")
 		return
 	}
 
@@ -168,14 +168,14 @@ func (handler *Handler) googleStart(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) googleCallback(w http.ResponseWriter, r *http.Request) {
 	if handler.googleOAuth == nil || !handler.googleOAuth.Configured() {
-		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "google oauth is not configured")
+		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google nao configurado")
 		return
 	}
 
 	expectedState, ok := OAuthState(r)
 	handler.clearOAuthStateCookie(w)
 	if !ok || expectedState != r.URL.Query().Get("state") {
-		httpx.WriteError(w, http.StatusBadRequest, "invalid_oauth_state", "oauth state is invalid")
+		httpx.WriteError(w, http.StatusBadRequest, "invalid_oauth_state", "estado do OAuth invalido")
 		return
 	}
 
@@ -258,13 +258,13 @@ func (handler *Handler) writeServiceError(w http.ResponseWriter, err error) {
 	case errors.As(err, &validationError):
 		httpx.WriteError(w, http.StatusBadRequest, "validation_error", validationError.Message)
 	case errors.Is(err, ErrEmailTaken):
-		httpx.WriteError(w, http.StatusConflict, "email_taken", "email is already registered")
+		httpx.WriteError(w, http.StatusConflict, "email_taken", "e-mail ja cadastrado")
 	case errors.Is(err, ErrInvalidCredentials):
-		httpx.WriteError(w, http.StatusUnauthorized, "invalid_credentials", "email or password is invalid")
+		httpx.WriteError(w, http.StatusUnauthorized, "invalid_credentials", "e-mail ou senha invalidos")
 	case errors.Is(err, ErrUnauthenticated):
-		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "authentication is required")
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticacao obrigatoria")
 	default:
-		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "an unexpected error occurred")
+		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "ocorreu um erro inesperado")
 	}
 }
 
