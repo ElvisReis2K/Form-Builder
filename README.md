@@ -289,7 +289,7 @@ O client TypeScript do frontend sera gerado a partir da especificacao:
 make client
 ```
 
-Arquivos gerados ficam em `frontend/src/api/generated` e nao devem ser editados manualmente.
+Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck.
 
 ## Decisoes iniciais
 
