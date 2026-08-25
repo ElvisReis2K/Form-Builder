@@ -1,18 +1,20 @@
 import { Button, Paper, Stack, TextField, Typography } from '@mui/material';
 
+import { formPagesStyles } from '../styles/formPages.styles';
+
 export default function AdminHomePage() {
   return (
-    <Stack spacing={3}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between">
+    <Stack sx={formPagesStyles.pageStack}>
+      <Stack sx={formPagesStyles.header}>
         <Typography variant="h4">Forms</Typography>
         <Button variant="contained">New form</Button>
       </Stack>
 
-      <Paper sx={{ p: 3 }}>
-        <Stack spacing={2}>
+      <Paper sx={formPagesStyles.editorPanel}>
+        <Stack sx={formPagesStyles.fieldStack}>
           <TextField label="Form title" defaultValue="Customer feedback" />
           <TextField label="Description" defaultValue="Simple published form draft" multiline rows={3} />
-          <Button variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+          <Button variant="outlined" sx={formPagesStyles.publishButton}>
             Publish
           </Button>
         </Stack>

@@ -30,8 +30,15 @@ Aplicacao full stack para criacao, publicacao e resposta de formularios. Este re
 │   └── openapi/
 ├── frontend/
 │   └── src/
+│       ├── app/
+│       ├── api/
+│       ├── features/
+│       ├── lib/
+│       └── styles/
+├── scripts/
 ├── docker-compose.yml
 ├── Makefile
+├── CONTRIBUTING.md
 └── README.md
 ```
 
@@ -136,6 +143,15 @@ npm install
 npm run dev
 ```
 
+Guarda de arquitetura do frontend:
+
+```bash
+cd frontend
+npm run lint:architecture
+```
+
+Regra do projeto: componentes e paginas nao devem misturar logica com estetica. Estilos MUI ficam em arquivos `*.styles.ts`; rotas e providers ficam em `src/app`; codigo por dominio fica em `src/features`; helpers sem UI ficam em `src/lib`.
+
 ## OpenAPI e client TypeScript
 
 A especificacao OpenAPI sera mantida como parte do fluxo de build do backend.
@@ -157,6 +173,7 @@ Arquivos gerados ficam em `frontend/src/api/generated` e nao devem ser editados 
 - Monorepo para simplificar setup local, revisao e DX.
 - PostgreSQL por ser multiplataforma, robusto e simples de subir via Docker Compose.
 - Vite em vez de Next.js para deixar claro que o backend Go e responsavel pela API, regras de negocio e persistencia.
+- Frontend organizado por `app`, `features`, `styles`, `lib` e `api`, mantendo estilos fora dos componentes e logica fora da camada visual.
 - Formularios, campos e respostas serao modelados em tabelas relacionais, com `jsonb` para configuracoes e respostas flexiveis.
 - Sessoes em banco com token opaco em cookie HTTP-only. O banco armazena apenas o hash HMAC do token, reduzindo impacto se os dados de sessao vazarem.
 - Migrations embutidas no binario Go para manter o setup local reproduzivel sem depender de uma CLI externa.
