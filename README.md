@@ -353,7 +353,7 @@ Esse comando executa o backend Go e regrava `backend/openapi/openapi.json`. Depo
 make client
 ```
 
-Esse comando roda `npm run generate:api` dentro de `frontend` e atualiza `frontend/src/api/generated/schema.ts` a partir de `backend/openapi/openapi.json`.
+Esse comando roda `npm run generate:api` dentro de `frontend` e atualiza `frontend/src/api/generated/schema.ts` e `frontend/src/api/generated/client.ts` a partir de `backend/openapi/openapi.json`.
 
 Fluxo obrigatorio para mudancas de contrato:
 
@@ -370,7 +370,7 @@ cd ../frontend
 npm run generate:api
 ```
 
-Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formularios e respostas sao aliases derivados de `frontend/src/api/generated/schema.ts`, e os wrappers de API usam o contrato `paths` gerado para tipar path, metodo, parametros, body e resposta.
+Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formularios e respostas sao aliases derivados de `frontend/src/api/generated/schema.ts`, e as paginas/features consomem a API por meio das funcoes geradas em `frontend/src/api/generated/client.ts`.
 
 ## Decisoes iniciais
 

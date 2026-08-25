@@ -15,9 +15,13 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 
-import { deleteFormResponse, exportFormResponses, listFormResponses } from '../../forms/api/formsApi';
+import {
+  deleteApiFormsFormIdResponsesResponseId,
+  getApiFormsFormIdResponses,
+  getApiFormsFormIdResponsesExport,
+  getErrorMessage,
+} from '../../../api/generated/client';
 import type { FormSubmission, FormSubmissionExportResponse } from '../../forms/types';
-import { getErrorMessage } from '../../../lib/api';
 import { responsesPageStyles } from '../styles/responsesPage.styles';
 
 export default function FormResponsesPage() {
@@ -26,20 +30,29 @@ export default function FormResponsesPage() {
 
   const responsesQuery = useQuery({
     queryKey: ['form-responses', formId],
-    queryFn: () => listFormResponses(formId ?? ''),
+    queryFn: () =>
+      getApiFormsFormIdResponses({
+        path: { formId: formId ?? '' },
+      }),
     enabled: Boolean(formId),
   });
 
   const form = responsesQuery.data?.form;
   const responses = responsesQuery.data?.responses ?? [];
   const exportMutation = useMutation({
-    mutationFn: () => exportFormResponses(formId ?? ''),
+    mutationFn: () =>
+      getApiFormsFormIdResponsesExport({
+        path: { formId: formId ?? '' },
+      }),
     onSuccess: (payload) => {
       downloadJSON(payload, responseExportFilename(form?.title ?? formId ?? 'formulario'));
     },
   });
   const deleteMutation = useMutation({
-    mutationFn: (responseId: string) => deleteFormResponse(formId ?? '', responseId),
+    mutationFn: (responseId: string) =>
+      deleteApiFormsFormIdResponsesResponseId({
+        path: { formId: formId ?? '', responseId },
+      }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['form-responses', formId] });
     },

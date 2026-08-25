@@ -16,8 +16,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
-import { getErrorMessage } from '../../../lib/api';
-import { getPublishedForm, submitFormResponse } from '../api/formsApi';
+import {
+  getApiPublicFormsSlug,
+  getErrorMessage,
+  postApiPublicFormsSlugResponses,
+} from '../../../api/generated/client';
 import { formPagesStyles } from '../styles/formPages.styles';
 import type { FormField } from '../types';
 
@@ -31,13 +34,20 @@ export default function PublicFormPage() {
 
   const formQuery = useQuery({
     queryKey: ['public-form', slug],
-    queryFn: () => getPublishedForm(slug ?? ''),
+    queryFn: () =>
+      getApiPublicFormsSlug({
+        path: { slug: slug ?? '' },
+      }),
     enabled: Boolean(slug),
   });
 
   const form = formQuery.data;
   const submitMutation = useMutation({
-    mutationFn: () => submitFormResponse(slug ?? '', { answers, privacyAcknowledged }),
+    mutationFn: () =>
+      postApiPublicFormsSlugResponses({
+        path: { slug: slug ?? '' },
+        body: { answers, privacyAcknowledged },
+      }),
     onSuccess: () => {
       setSubmitted(true);
     },

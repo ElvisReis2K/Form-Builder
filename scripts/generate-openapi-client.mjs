@@ -1,4 +1,57 @@
-import type { components, paths } from '../api/generated/schema';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const [openapiPath, outputPath] = process.argv.slice(2);
+
+if (!openapiPath || !outputPath) {
+  console.error('Usage: node scripts/generate-openapi-client.mjs <openapi.json> <output.ts>');
+  process.exit(1);
+}
+
+const spec = JSON.parse(fs.readFileSync(openapiPath, 'utf8'));
+const operations = collectOperations(spec.paths ?? {});
+const output = renderClient(operations);
+
+fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+fs.writeFileSync(outputPath, output, 'utf8');
+
+function collectOperations(paths) {
+  const methods = ['get', 'post', 'put', 'patch', 'delete'];
+
+  return Object.entries(paths)
+    .flatMap(([route, pathItem]) =>
+      methods
+        .filter((method) => pathItem?.[method])
+        .map((method) => ({
+          method,
+          route,
+          name: operationName(method, route),
+        })),
+    )
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function operationName(method, route) {
+  const segments = route
+    .split('/')
+    .filter(Boolean)
+    .map((segment) => segment.replace(/^\{(.+)\}$/, '$1'))
+    .map(toPascalCase);
+
+  return `${method}${segments.join('')}`;
+}
+
+function toPascalCase(value) {
+  return value
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join('');
+}
+
+function renderClient(operations) {
+  return `${generatedHeader()}
+import type { components, paths } from './schema';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
@@ -99,11 +152,13 @@ export function getErrorMessage(error: unknown) {
   return 'Erro inesperado na requisicao';
 }
 
-export function apiURL<TPath extends keyof paths>(path: TPath) {
-  return absoluteAPIURL(String(path));
+export function apiURL<TPath extends keyof paths>(path: TPath, pathParams?: RuntimePathParameters) {
+  return absoluteAPIURL(resolvePath(String(path), pathParams));
 }
 
-export async function apiRequest<TPath extends keyof paths, TMethod extends AvailableMethod<TPath>>(
+${operations.map(renderOperation).join('\n\n')}
+
+async function apiRequest<TPath extends keyof paths, TMethod extends AvailableMethod<TPath>>(
   path: TPath,
   method: TMethod,
   ...args: APIRequestArgs<Operation<TPath, TMethod>>
@@ -149,17 +204,37 @@ function readPayload(response: Response) {
   return response.json();
 }
 
-function absoluteAPIURL(path: string) {
-  return `${API_BASE_URL}${path}`;
+function absoluteAPIURL(route: string) {
+  return \`\${API_BASE_URL}\${route}\`;
 }
 
-function resolvePath(path: string, pathParams: RuntimePathParameters = {}) {
-  return path.replace(/\{([^}]+)\}/g, (_, key: string) => {
+function resolvePath(route: string, pathParams: RuntimePathParameters = {}) {
+  return route.replace(/\\{([^}]+)\\}/g, (_, key: string) => {
     const value = pathParams[key];
     if (value === undefined || value === null) {
-      throw new Error(`Parametro de rota ausente: "${key}"`);
+      throw new Error(\`Parametro de rota ausente: "\${key}"\`);
     }
 
     return encodeURIComponent(String(value));
   });
+}
+`;
+}
+
+function renderOperation(operation) {
+  const route = JSON.stringify(operation.route);
+  const method = JSON.stringify(operation.method);
+
+  return `export function ${operation.name}(
+  ...args: APIRequestArgs<Operation<${route}, ${method}>>
+) {
+  return apiRequest(${route}, ${method}, ...args);
+}`;
+}
+
+function generatedHeader() {
+  return `/**
+ * This file was auto-generated from backend/openapi/openapi.json.
+ * Do not edit manually. Run npm run generate:api from frontend instead.
+ */`;
 }

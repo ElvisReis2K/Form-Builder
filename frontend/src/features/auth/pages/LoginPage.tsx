@@ -3,8 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { getErrorMessage } from '../../../lib/api';
-import { googleLoginURL, login, register } from '../api/authApi';
+import { apiURL, getErrorMessage, postApiAuthLogin, postApiAuthRegister } from '../../../api/generated/client';
 
 import { loginPageStyles } from '../styles/loginPage.styles';
 
@@ -21,10 +20,14 @@ export default function LoginPage() {
   const authMutation = useMutation({
     mutationFn: () => {
       if (mode === 'register') {
-        return register({ name, email, password });
+        return postApiAuthRegister({
+          body: { name, email, password },
+        });
       }
 
-      return login({ email, password });
+      return postApiAuthLogin({
+        body: { email, password },
+      });
     },
     onSuccess: () => {
       navigate('/admin');
@@ -42,7 +45,7 @@ export default function LoginPage() {
   }
 
   function startGoogleLogin() {
-    window.location.assign(googleLoginURL());
+    window.location.assign(apiURL('/api/auth/google'));
   }
 
   const oauthError = searchParams.get('authError');

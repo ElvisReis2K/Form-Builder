@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint:architecture": "node ../scripts/check-frontend-architecture.mjs",
-    "generate:api": "openapi-typescript ../backend/openapi/openapi.json -o src/api/generated/schema.ts"
+    "generate:api": "openapi-typescript ../backend/openapi/openapi.json -o src/api/generated/schema.ts && node ../scripts/generate-openapi-client.mjs ../backend/openapi/openapi.json src/api/generated/client.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",

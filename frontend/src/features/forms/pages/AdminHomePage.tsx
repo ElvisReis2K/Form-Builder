@@ -20,8 +20,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-import { getErrorMessage } from '../../../lib/api';
-import { createForm, deleteForm, listForms, publishForm, unpublishForm, updateForm } from '../api/formsApi';
+import {
+  deleteApiFormsFormId,
+  getApiForms,
+  getErrorMessage,
+  postApiForms,
+  postApiFormsFormIdPublish,
+  postApiFormsFormIdUnpublish,
+  putApiFormsFormId,
+} from '../../../api/generated/client';
 import { formPagesStyles } from '../styles/formPages.styles';
 import type { FieldType, FormStatus } from '../types';
 import {
@@ -49,7 +56,7 @@ export default function AdminHomePage() {
 
   const formsQuery = useQuery({
     queryKey: formsQueryKey,
-    queryFn: listForms,
+    queryFn: () => getApiForms(),
   });
 
   const forms = formsQuery.data?.forms ?? [];
@@ -65,7 +72,7 @@ export default function AdminHomePage() {
   }, [isCreating, selectedForm]);
 
   const createMutation = useMutation({
-    mutationFn: createForm,
+    mutationFn: (input: ReturnType<typeof draftToRequest>) => postApiForms({ body: input }),
     onSuccess: (form) => {
       setIsCreating(false);
       setSelectedFormId(form.id);
@@ -76,7 +83,10 @@ export default function AdminHomePage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ formId, input }: { formId: string; input: ReturnType<typeof draftToRequest> }) =>
-      updateForm(formId, input),
+      putApiFormsFormId({
+        path: { formId },
+        body: input,
+      }),
     onSuccess: (form) => {
       setDraft(formToDraft(form));
       void queryClient.invalidateQueries({ queryKey: formsQueryKey });
@@ -84,7 +94,10 @@ export default function AdminHomePage() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: publishForm,
+    mutationFn: (formId: string) =>
+      postApiFormsFormIdPublish({
+        path: { formId },
+      }),
     onSuccess: (form) => {
       setDraft(formToDraft(form));
       void queryClient.invalidateQueries({ queryKey: formsQueryKey });
@@ -92,7 +105,10 @@ export default function AdminHomePage() {
   });
 
   const unpublishMutation = useMutation({
-    mutationFn: unpublishForm,
+    mutationFn: (formId: string) =>
+      postApiFormsFormIdUnpublish({
+        path: { formId },
+      }),
     onSuccess: (form) => {
       setDraft(formToDraft(form));
       void queryClient.invalidateQueries({ queryKey: formsQueryKey });
@@ -100,7 +116,10 @@ export default function AdminHomePage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteForm,
+    mutationFn: (formId: string) =>
+      deleteApiFormsFormId({
+        path: { formId },
+      }),
     onSuccess: () => {
       setIsCreating(true);
       setSelectedFormId(null);

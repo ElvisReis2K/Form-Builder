@@ -33,6 +33,7 @@ frontend/coverage/
 frontend/src/api/generated/*
 !frontend/src/api/generated/.gitkeep
 !frontend/src/api/generated/schema.ts
+!frontend/src/api/generated/client.ts
 
 # Build artifacts
 *.exe
