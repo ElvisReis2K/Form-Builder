@@ -1,68 +1,14 @@
-export type FormStatus = 'draft' | 'published';
+import type { components } from '../../api/generated/schema';
 
-export type FieldType = 'text' | 'textarea' | 'email' | 'number' | 'select' | 'checkbox';
-
-export type FormField = {
-  id: string;
-  position: number;
-  type: FieldType;
-  label: string;
-  required: boolean;
-  placeholder: string | null;
-  options: string[];
-  config: Record<string, unknown>;
-};
-
-export type BuilderForm = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: FormStatus;
-  publicSlug: string | null;
-  publicUrl: string | null;
-  publishedAt: string | null;
-  fields: FormField[];
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type FormFieldInput = {
-  type: FieldType;
-  label: string;
-  required: boolean;
-  placeholder?: string | null;
-  options?: string[];
-  config?: Record<string, unknown>;
-};
-
-export type FormRequest = {
-  title: string;
-  description?: string | null;
-  fields: FormFieldInput[];
-};
-
-export type FormListResponse = {
-  forms: BuilderForm[];
-};
-
-export type FormSubmission = {
-  id: string;
-  formId: string;
-  answers: Record<string, unknown>;
-  submittedAt: string;
-};
-
-export type SubmitResponseRequest = {
-  answers: Record<string, unknown>;
-};
-
-export type FormResponseSummary = {
-  id: string;
-  title: string;
-  fields: Pick<FormField, 'id' | 'position' | 'type' | 'label' | 'required'>[];
-};
-
-export type FormSubmissionListResponse = {
-  form: FormResponseSummary;
-  responses: FormSubmission[];
-};
+export type FormStatus = components['schemas']['Form']['status'];
+export type FieldType = components['schemas']['FormField']['type'];
+export type FormField = components['schemas']['FormField'];
+export type BuilderForm = components['schemas']['Form'];
+export type FormFieldInput = components['schemas']['FormFieldInput'];
+export type FormRequest = components['schemas']['FormRequest'];
+export type FormListResponse = components['schemas']['FormListResponse'];
+export type FormSubmission = components['schemas']['FormSubmission'];
+export type SubmitResponseRequest = components['schemas']['SubmitResponseRequest'];
+export type FormResponseFieldSummary = components['schemas']['FormResponseFieldSummary'];
+export type FormResponseSummary = components['schemas']['FormResponseSummary'];
+export type FormSubmissionListResponse = components['schemas']['FormSubmissionListResponse'];

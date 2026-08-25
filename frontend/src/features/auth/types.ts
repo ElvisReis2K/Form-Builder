@@ -1,19 +1,6 @@
-export type User = {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: string;
-};
+import type { components } from '../../api/generated/schema';
 
-export type AuthResponse = {
-  user: User;
-};
-
-export type LoginInput = {
-  email: string;
-  password: string;
-};
-
-export type RegisterInput = LoginInput & {
-  name: string;
-};
+export type User = components['schemas']['User'];
+export type AuthResponse = components['schemas']['AuthResponse'];
+export type LoginInput = components['schemas']['LoginRequest'];
+export type RegisterInput = components['schemas']['RegisterRequest'];
