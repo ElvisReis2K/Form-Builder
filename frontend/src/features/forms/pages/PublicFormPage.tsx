@@ -86,7 +86,7 @@ export default function PublicFormPage() {
               {form.fields.map((field) => renderField(field, answers, updateAnswer))}
             </Stack>
 
-            <Button type="submit" variant="contained" disabled={submitMutation.isPending}>
+            <Button type="submit" variant="contained" disabled={submitMutation.isPending} sx={formPagesStyles.submitButton}>
               Enviar resposta
             </Button>
           </>

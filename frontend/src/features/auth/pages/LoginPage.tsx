@@ -86,15 +86,15 @@ export default function LoginPage() {
         />
 
         <Stack sx={loginPageStyles.actions}>
-          <Button type="submit" variant="contained" disabled={authMutation.isPending}>
+          <Button type="submit" variant="contained" disabled={authMutation.isPending} sx={loginPageStyles.actionButton}>
             {mode === 'login' ? 'Entrar' : 'Criar'}
           </Button>
-          <Button type="button" variant="text" onClick={toggleMode}>
+          <Button type="button" variant="text" onClick={toggleMode} sx={loginPageStyles.actionButton}>
             {mode === 'login' ? 'Criar conta' : 'Usar conta existente'}
           </Button>
         </Stack>
 
-        <Button type="button" variant="outlined" onClick={startGoogleLogin}>
+        <Button type="button" variant="outlined" onClick={startGoogleLogin} sx={loginPageStyles.googleButton}>
           Continuar com Google
         </Button>
       </Stack>

@@ -44,8 +44,8 @@ export default function FormResponsesPage() {
       <Paper sx={responsesPageStyles.panel}>
         {form && responses.length > 0 ? (
           <TableContainer sx={responsesPageStyles.tableContainer}>
-            <Table size="small">
-              <TableHead>
+            <Table size="small" sx={responsesPageStyles.table}>
+              <TableHead sx={responsesPageStyles.tableHead}>
                 <TableRow>
                   <TableCell>Enviada em</TableCell>
                   {form.fields.map((field) => (
@@ -55,7 +55,7 @@ export default function FormResponsesPage() {
               </TableHead>
               <TableBody>
                 {responses.map((response) => (
-                  <TableRow key={response.id}>
+                  <TableRow key={response.id} hover>
                     <TableCell>{formatDate(response.submittedAt)}</TableCell>
                     {form.fields.map((field) => (
                       <TableCell key={field.id}>{formatAnswer(response, field.id)}</TableCell>

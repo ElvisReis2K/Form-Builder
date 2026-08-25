@@ -2,7 +2,10 @@ import type { SxProps, Theme } from '@mui/material/styles';
 
 export const formPagesStyles = {
   pageStack: {
-    gap: 3,
+    gap: {
+      xs: 2.5,
+      md: 3.5,
+    },
   },
   header: {
     flexDirection: {
@@ -15,42 +18,84 @@ export const formPagesStyles = {
       xs: 'stretch',
       sm: 'center',
     },
+    pb: 1,
   },
   titleBlock: {
-    gap: 0.5,
+    gap: 0.75,
     minWidth: 0,
   },
   workspace: {
     display: 'grid',
     gridTemplateColumns: {
       xs: '1fr',
-      md: '320px minmax(0, 1fr)',
+      md: '300px minmax(0, 1fr)',
+      lg: '320px minmax(0, 1fr)',
     },
-    gap: 3,
+    gap: {
+      xs: 2,
+      md: 3,
+    },
     alignItems: 'start',
   },
   sidebarPanel: {
     overflow: 'hidden',
+    position: {
+      md: 'sticky',
+    },
+    top: {
+      md: 96,
+    },
   },
   sidebarHeader: {
-    p: 2,
+    p: 2.25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 2,
   },
   formsList: {
+    p: 1,
     maxHeight: {
       xs: 280,
-      md: 620,
+      md: 650,
     },
     overflow: 'auto',
   },
+  sidebarEmptyState: {
+    minHeight: 132,
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    px: 2,
+  },
+  formListItem: {
+    mb: 0.75,
+    gap: 1.5,
+    '&:last-of-type': {
+      mb: 0,
+    },
+    '&.Mui-selected': {
+      bgcolor: 'primary.main',
+      color: 'primary.contrastText',
+      '& .MuiListItemText-secondary': {
+        color: 'rgba(255,255,255,0.72)',
+      },
+      '&:hover': {
+        bgcolor: 'primary.dark',
+      },
+    },
+  },
   editorPanel: {
-    p: 3,
+    p: {
+      xs: 2.25,
+      md: 3,
+    },
   },
   editorStack: {
-    gap: 3,
+    gap: {
+      xs: 2.5,
+      md: 3,
+    },
   },
   editorHeader: {
     flexDirection: {
@@ -67,7 +112,7 @@ export const formPagesStyles = {
   formGrid: {
     display: 'grid',
     gridTemplateColumns: '1fr',
-    gap: 2,
+    gap: 2.25,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -76,15 +121,18 @@ export const formPagesStyles = {
     gap: 2,
   },
   fieldStack: {
-    gap: 2,
+    gap: 1.5,
   },
   fieldEditor: {
     gap: 2,
     border: 1,
     borderColor: 'divider',
     borderRadius: 1,
-    p: 2,
-    bgcolor: 'background.default',
+    p: {
+      xs: 1.75,
+      md: 2,
+    },
+    bgcolor: '#f9fbfd',
   },
   fieldHeader: {
     flexDirection: 'row',
@@ -105,17 +153,32 @@ export const formPagesStyles = {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 1,
+    pt: 0.5,
   },
   publishButton: {
     alignSelf: 'flex-start',
   },
   publicPanel: {
-    maxWidth: 640,
+    maxWidth: 700,
     mx: 'auto',
-    p: 3,
+    mt: {
+      xs: 2,
+      md: 4,
+    },
+    p: {
+      xs: 2.5,
+      sm: 4,
+    },
   },
   publicHeader: {
-    gap: 0.5,
+    gap: 0.75,
+    pb: 1,
+  },
+  submitButton: {
+    alignSelf: {
+      xs: 'stretch',
+      sm: 'flex-start',
+    },
   },
   loadingBar: {
     borderRadius: 1,

@@ -226,11 +226,19 @@ export default function AdminHomePage() {
           </Stack>
           <Divider />
           <List sx={formPagesStyles.formsList}>
+            {forms.length === 0 ? (
+              <Stack sx={formPagesStyles.sidebarEmptyState}>
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum formulario salvo
+                </Typography>
+              </Stack>
+            ) : null}
             {forms.map((form) => (
               <ListItemButton
                 key={form.id}
                 selected={!isCreating && selectedFormId === form.id}
                 onClick={() => selectForm(form.id)}
+                sx={formPagesStyles.formListItem}
               >
                 <ListItemText primary={form.title} secondary={formatFieldCount(form.fields.length)} />
                 <Chip
