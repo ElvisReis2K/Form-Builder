@@ -35,13 +35,17 @@ export function getErrorMessage(error: unknown) {
   return 'Unexpected request error';
 }
 
+export function apiURL(path: string) {
+  return `${API_BASE_URL}${path}`;
+}
+
 export async function apiRequest<TResponse>(path: string, options: RequestInit = {}) {
   const headers = new Headers(options.headers);
   if (options.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(apiURL(path), {
     ...options,
     credentials: 'include',
     headers,

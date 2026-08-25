@@ -1,4 +1,4 @@
-import { apiRequest } from '../../../lib/api';
+import { apiRequest, apiURL } from '../../../lib/api';
 import type { AuthResponse, LoginInput, RegisterInput } from '../types';
 
 export function login(input: LoginInput) {
@@ -23,4 +23,8 @@ export function logout() {
   return apiRequest<void>('/api/auth/logout', {
     method: 'POST',
   });
+}
+
+export function googleLoginURL() {
+  return apiURL('/api/auth/google');
 }

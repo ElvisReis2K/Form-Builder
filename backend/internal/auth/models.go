@@ -25,3 +25,9 @@ type LoginInput struct {
 	Email    string
 	Password string
 }
+
+type GoogleIdentityInput struct {
+	Subject string
+	Email   string
+	Name    string
+}

@@ -434,6 +434,85 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/api/auth/google": {
+      "get": {
+        "responses": {
+          "302": {
+            "description": "Redirect to Google's OAuth authorization endpoint"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Google OAuth is not configured"
+          }
+        },
+        "summary": "Start Google OAuth login"
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Google authorization code",
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "OAuth state value",
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Google OAuth error code",
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend after login"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid OAuth state"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Google OAuth is not configured"
+          }
+        },
+        "summary": "Handle Google OAuth callback"
+      }
+    },
     "/api/auth/login": {
       "post": {
         "requestBody": {

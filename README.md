@@ -55,6 +55,7 @@ Variaveis principais:
 - `SESSION_TTL_HOURS`: duracao da sessao em horas.
 - `COOKIE_SECURE`: use `true` quando a API estiver atras de HTTPS.
 - `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`: credenciais OAuth do Google.
+- `GOOGLE_REDIRECT_URL`: callback autorizado no Google Cloud. Em local, use `http://localhost:8080/api/auth/google/callback`.
 
 ## Banco de dados
 
@@ -146,6 +147,29 @@ Usuario autenticado:
 curl -i http://localhost:8080/api/auth/me \
   --cookie "form_builder_session=<cookie-value>"
 ```
+
+## Autenticacao com Google
+
+O login com Google usa OAuth 2.0 Authorization Code no backend Go. O frontend apenas redireciona para `GET /api/auth/google`; o callback valida `state`, consulta o perfil no Google e cria a mesma sessao HTTP-only usada pelo login por e-mail/senha.
+
+No Google Cloud, crie um OAuth Client do tipo Web application e configure o redirect URI:
+
+```text
+http://localhost:8080/api/auth/google/callback
+```
+
+Depois preencha no `.env`:
+
+```bash
+GOOGLE_CLIENT_ID=<client-id>
+GOOGLE_CLIENT_SECRET=<client-secret>
+GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
+```
+
+Rotas:
+
+- `GET /api/auth/google`: inicia login e redireciona para o Google.
+- `GET /api/auth/google/callback`: recebe `code` e `state`, cria/associa o usuario e redireciona para `/admin`.
 
 ## CRUD de formularios
 
@@ -279,4 +303,4 @@ Arquivos gerados ficam em `frontend/src/api/generated` e nao devem ser editados 
 
 ## Status
 
-Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes, autenticacao por e-mail/senha, CRUD autenticado de formularios com publicacao, envio/listagem de respostas e frontend conectado aos fluxos principais. A proxima etapa e encaixar autenticacao com Google.
+Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes, autenticacao por e-mail/senha, autenticacao com Google, CRUD autenticado de formularios com publicacao, envio/listagem de respostas e frontend conectado aos fluxos principais.

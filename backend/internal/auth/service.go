@@ -94,6 +94,66 @@ func (service *Service) Login(ctx context.Context, input LoginInput) (AuthResult
 	return service.createSession(ctx, user.User)
 }
 
+func (service *Service) LoginWithGoogle(ctx context.Context, input GoogleIdentityInput) (AuthResult, error) {
+	subject := strings.TrimSpace(input.Subject)
+	email := normalizeEmail(input.Email)
+	name := strings.TrimSpace(input.Name)
+
+	if subject == "" {
+		return AuthResult{}, ValidationError{Message: "google subject is required"}
+	}
+
+	if err := validateEmail(email); err != nil {
+		return AuthResult{}, err
+	}
+
+	if name == "" {
+		name = fallbackNameFromEmail(email)
+	}
+
+	user, err := service.repo.FindUserByIdentity(ctx, "google", subject)
+	if err == nil {
+		return service.createSession(ctx, user)
+	}
+	if !errors.Is(err, ErrNotFound) {
+		return AuthResult{}, err
+	}
+
+	userWithPassword, err := service.repo.FindUserByEmail(ctx, email)
+	if errors.Is(err, ErrNotFound) {
+		user, err = service.repo.CreateUser(ctx, email, name, "")
+		if errors.Is(err, ErrEmailTaken) {
+			userWithPassword, err = service.repo.FindUserByEmail(ctx, email)
+			if err != nil {
+				return AuthResult{}, err
+			}
+
+			user = userWithPassword.User
+		} else if err != nil {
+			return AuthResult{}, err
+		}
+	} else if err != nil {
+		return AuthResult{}, err
+	} else {
+		user = userWithPassword.User
+	}
+
+	if err := service.repo.LinkIdentity(ctx, user.ID, "google", subject, email); err != nil {
+		if errors.Is(err, ErrIdentityTaken) {
+			user, err := service.repo.FindUserByIdentity(ctx, "google", subject)
+			if err != nil {
+				return AuthResult{}, err
+			}
+
+			return service.createSession(ctx, user)
+		}
+
+		return AuthResult{}, err
+	}
+
+	return service.createSession(ctx, user)
+}
+
 func (service *Service) Authenticate(ctx context.Context, token string) (User, error) {
 	if strings.TrimSpace(token) == "" {
 		return User{}, ErrUnauthenticated
@@ -173,4 +233,13 @@ func validatePassword(password string) error {
 	}
 
 	return nil
+}
+
+func fallbackNameFromEmail(email string) string {
+	name, _, ok := strings.Cut(email, "@")
+	if !ok || strings.TrimSpace(name) == "" {
+		return "Google user"
+	}
+
+	return name
 }

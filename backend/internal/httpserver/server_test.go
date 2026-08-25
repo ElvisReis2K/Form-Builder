@@ -13,7 +13,7 @@ func TestNewRegistersRoutes(t *testing.T) {
 	server := New(
 		config.Config{Address: "localhost:0"},
 		nil,
-		auth.NewHandler(nil, false),
+		auth.NewHandler(nil, false, "", nil),
 		forms.NewHandler(nil, nil),
 		responses.NewHandler(nil, nil),
 	)

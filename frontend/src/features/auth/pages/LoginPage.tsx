@@ -1,10 +1,10 @@
 import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '../../../lib/api';
-import { login, register } from '../api/authApi';
+import { googleLoginURL, login, register } from '../api/authApi';
 
 import { loginPageStyles } from '../styles/loginPage.styles';
 
@@ -12,6 +12,7 @@ type AuthMode = 'login' | 'register';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -40,6 +41,12 @@ export default function LoginPage() {
     setMode((currentMode) => (currentMode === 'login' ? 'register' : 'login'));
   }
 
+  function startGoogleLogin() {
+    window.location.assign(googleLoginURL());
+  }
+
+  const oauthError = searchParams.get('authError');
+
   return (
     <Paper sx={loginPageStyles.panel}>
       <Stack component="form" onSubmit={handleSubmit} sx={loginPageStyles.form}>
@@ -49,6 +56,7 @@ export default function LoginPage() {
         </Stack>
 
         {authMutation.error ? <Alert severity="error">{getErrorMessage(authMutation.error)}</Alert> : null}
+        {oauthError ? <Alert severity="error">Google sign in failed. Please try again.</Alert> : null}
 
         {mode === 'register' ? (
           <TextField
@@ -85,6 +93,10 @@ export default function LoginPage() {
             {mode === 'login' ? 'Create account' : 'Use existing account'}
           </Button>
         </Stack>
+
+        <Button type="button" variant="outlined" onClick={startGoogleLogin}>
+          Continue with Google
+        </Button>
       </Stack>
     </Paper>
   );

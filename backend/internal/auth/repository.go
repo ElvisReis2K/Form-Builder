@@ -43,6 +43,24 @@ func (repo *Repository) CreateUser(ctx context.Context, email string, name strin
 	return user, nil
 }
 
+func (repo *Repository) FindUserByIdentity(ctx context.Context, provider string, subject string) (User, error) {
+	var user User
+	err := repo.db.QueryRow(ctx, `
+		SELECT u.id::text, u.email, u.name, u.created_at
+		FROM auth_identities identity
+		INNER JOIN users u ON u.id = identity.user_id
+		WHERE identity.provider = $1 AND identity.provider_subject = $2
+	`, provider, subject).Scan(&user.ID, &user.Email, &user.Name, &user.CreatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return User{}, ErrNotFound
+	}
+	if err != nil {
+		return User{}, fmt.Errorf("find user by identity: %w", err)
+	}
+
+	return user, nil
+}
+
 func (repo *Repository) FindUserByEmail(ctx context.Context, email string) (userWithPassword, error) {
 	var user userWithPassword
 	err := repo.db.QueryRow(ctx, `
@@ -58,6 +76,21 @@ func (repo *Repository) FindUserByEmail(ctx context.Context, email string) (user
 	}
 
 	return user, nil
+}
+
+func (repo *Repository) LinkIdentity(ctx context.Context, userID string, provider string, subject string, email string) error {
+	_, err := repo.db.Exec(ctx, `
+		INSERT INTO auth_identities (user_id, provider, provider_subject, provider_email)
+		VALUES ($1, $2, $3, $4)
+	`, userID, provider, subject, email)
+	if isUniqueViolation(err) {
+		return ErrIdentityTaken
+	}
+	if err != nil {
+		return fmt.Errorf("link identity: %w", err)
+	}
+
+	return nil
 }
 
 func (repo *Repository) CreateSession(ctx context.Context, userID string, tokenHash string, expiresAt time.Time) error {

@@ -57,7 +57,12 @@ func runServer() {
 
 	authRepo := auth.NewRepository(db)
 	authService := auth.NewService(authRepo, cfg.SessionSecret, cfg.SessionTTL)
-	authHandler := auth.NewHandler(authService, cfg.CookieSecure)
+	googleOAuth := auth.NewGoogleOAuth(auth.GoogleOAuthConfig{
+		ClientID:     cfg.GoogleClientID,
+		ClientSecret: cfg.GoogleClientSecret,
+		RedirectURL:  cfg.GoogleRedirectURL,
+	})
+	authHandler := auth.NewHandler(authService, cfg.CookieSecure, cfg.FrontendURL, googleOAuth)
 
 	formsRepo := forms.NewRepository(db)
 	formsService := forms.NewService(formsRepo)

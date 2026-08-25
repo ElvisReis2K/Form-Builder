@@ -18,6 +18,7 @@ type Config struct {
 	CookieSecure       bool
 	GoogleClientID     string
 	GoogleClientSecret string
+	GoogleRedirectURL  string
 }
 
 func Load() Config {
@@ -32,6 +33,7 @@ func Load() Config {
 		CookieSecure:       envBool("COOKIE_SECURE", false),
 		GoogleClientID:     env("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: env("GOOGLE_CLIENT_SECRET", ""),
+		GoogleRedirectURL:  env("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/auth/google/callback"),
 	}
 }
 

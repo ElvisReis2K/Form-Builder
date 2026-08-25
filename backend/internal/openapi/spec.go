@@ -62,6 +62,30 @@ func spec() map[string]any {
 					},
 				},
 			},
+			"/api/auth/google": map[string]any{
+				"get": map[string]any{
+					"summary": "Start Google OAuth login",
+					"responses": map[string]any{
+						"302": emptyResponse("Redirect to Google's OAuth authorization endpoint"),
+						"503": jsonResponse("Google OAuth is not configured", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/auth/google/callback": map[string]any{
+				"get": map[string]any{
+					"summary": "Handle Google OAuth callback",
+					"parameters": []map[string]any{
+						queryParameter("code", "Google authorization code"),
+						queryParameter("state", "OAuth state value"),
+						queryParameter("error", "Google OAuth error code"),
+					},
+					"responses": map[string]any{
+						"302": emptyResponse("Redirect to frontend after login"),
+						"400": jsonResponse("Invalid OAuth state", "#/components/schemas/ErrorResponse"),
+						"503": jsonResponse("Google OAuth is not configured", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
 			"/api/auth/logout": map[string]any{
 				"post": map[string]any{
 					"summary":  "Logout current session",
@@ -420,6 +444,18 @@ func pathParameter(name string, description string) map[string]any {
 		"name":        name,
 		"in":          "path",
 		"required":    true,
+		"description": description,
+		"schema": map[string]any{
+			"type": "string",
+		},
+	}
+}
+
+func queryParameter(name string, description string) map[string]any {
+	return map[string]any{
+		"name":        name,
+		"in":          "query",
+		"required":    false,
 		"description": description,
 		"schema": map[string]any{
 			"type": "string",
