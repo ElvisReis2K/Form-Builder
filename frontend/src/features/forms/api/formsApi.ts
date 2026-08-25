@@ -1,60 +1,56 @@
 import { apiRequest } from '../../../lib/api';
-import type {
-  BuilderForm,
-  FormListResponse,
-  FormRequest,
-  FormSubmission,
-  FormSubmissionListResponse,
-  SubmitResponseRequest,
-} from '../types';
+import type { FormRequest, SubmitResponseRequest } from '../types';
 
 export function listForms() {
-  return apiRequest<FormListResponse>('/api/forms');
+  return apiRequest('/api/forms', 'get');
 }
 
 export function createForm(input: FormRequest) {
-  return apiRequest<BuilderForm>('/api/forms', {
-    method: 'POST',
-    body: JSON.stringify(input),
+  return apiRequest('/api/forms', 'post', {
+    body: input,
   });
 }
 
 export function updateForm(formId: string, input: FormRequest) {
-  return apiRequest<BuilderForm>(`/api/forms/${formId}`, {
-    method: 'PUT',
-    body: JSON.stringify(input),
+  return apiRequest('/api/forms/{formId}', 'put', {
+    path: { formId },
+    body: input,
   });
 }
 
 export function deleteForm(formId: string) {
-  return apiRequest<void>(`/api/forms/${formId}`, {
-    method: 'DELETE',
+  return apiRequest('/api/forms/{formId}', 'delete', {
+    path: { formId },
   });
 }
 
 export function publishForm(formId: string) {
-  return apiRequest<BuilderForm>(`/api/forms/${formId}/publish`, {
-    method: 'POST',
+  return apiRequest('/api/forms/{formId}/publish', 'post', {
+    path: { formId },
   });
 }
 
 export function unpublishForm(formId: string) {
-  return apiRequest<BuilderForm>(`/api/forms/${formId}/unpublish`, {
-    method: 'POST',
+  return apiRequest('/api/forms/{formId}/unpublish', 'post', {
+    path: { formId },
   });
 }
 
 export function getPublishedForm(slug: string) {
-  return apiRequest<BuilderForm>(`/api/public/forms/${slug}`);
+  return apiRequest('/api/public/forms/{slug}', 'get', {
+    path: { slug },
+  });
 }
 
 export function submitFormResponse(slug: string, input: SubmitResponseRequest) {
-  return apiRequest<FormSubmission>(`/api/public/forms/${slug}/responses`, {
-    method: 'POST',
-    body: JSON.stringify(input),
+  return apiRequest('/api/public/forms/{slug}/responses', 'post', {
+    path: { slug },
+    body: input,
   });
 }
 
 export function listFormResponses(formId: string) {
-  return apiRequest<FormSubmissionListResponse>(`/api/forms/${formId}/responses`);
+  return apiRequest('/api/forms/{formId}/responses', 'get', {
+    path: { formId },
+  });
 }

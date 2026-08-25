@@ -289,7 +289,7 @@ O client TypeScript do frontend sera gerado a partir da especificacao:
 make client
 ```
 
-Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formularios e respostas sao aliases derivados de `frontend/src/api/generated/schema.ts`, evitando contratos TypeScript mantidos manualmente.
+Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formularios e respostas sao aliases derivados de `frontend/src/api/generated/schema.ts`, e os wrappers de API usam o contrato `paths` gerado para tipar path, metodo, parametros, body e resposta.
 
 ## Decisoes iniciais
 
