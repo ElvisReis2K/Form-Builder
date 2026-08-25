@@ -9,4 +9,18 @@ export const loginPageStyles = {
   form: {
     gap: 2,
   },
+  header: {
+    gap: 0.5,
+  },
+  actions: {
+    flexDirection: {
+      xs: 'column',
+      sm: 'row',
+    },
+    gap: 1,
+    alignItems: {
+      xs: 'stretch',
+      sm: 'center',
+    },
+  },
 } satisfies Record<string, SxProps<Theme>>;

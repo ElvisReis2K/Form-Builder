@@ -200,6 +200,8 @@ npm install
 npm run dev
 ```
 
+O frontend usa `http://localhost:8080` como API por padrao. Para mudar, copie `frontend/.env.example` para `frontend/.env` e ajuste `VITE_API_URL`.
+
 Guarda de arquitetura do frontend:
 
 ```bash
@@ -208,6 +210,8 @@ npm run lint:architecture
 ```
 
 Regra do projeto: componentes e paginas nao devem misturar logica com estetica. Estilos MUI ficam em arquivos `*.styles.ts`; rotas e providers ficam em `src/app`; codigo por dominio fica em `src/features`; helpers sem UI ficam em `src/lib`.
+
+O admin em `/admin` consome a API real para listar, criar, editar, publicar, despublicar e excluir formularios. A pagina publica `/f/:slug` carrega o formulario publicado por slug.
 
 ## OpenAPI e client TypeScript
 
@@ -237,4 +241,4 @@ Arquivos gerados ficam em `frontend/src/api/generated` e nao devem ser editados 
 
 ## Status
 
-Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes, autenticacao por e-mail/senha e CRUD autenticado de formularios com publicacao. As proximas etapas sao integrar o frontend ao client TypeScript gerado, aceitar respostas publicas e encaixar autenticacao com Google.
+Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes, autenticacao por e-mail/senha, CRUD autenticado de formularios com publicacao e frontend conectado para administracao dos formularios. As proximas etapas sao aceitar respostas publicas e encaixar autenticacao com Google.
