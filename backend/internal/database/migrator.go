@@ -16,12 +16,12 @@ import (
 )
 
 type Migration struct {
-	Version int64
-	Name    string
-	UpPath  string
+	Version  int64
+	Name     string
+	UpPath   string
 	DownPath string
-	UpSQL   string
-	DownSQL string
+	UpSQL    string
+	DownSQL  string
 }
 
 func MigrateUp(ctx context.Context, pool *pgxpool.Pool) error {
