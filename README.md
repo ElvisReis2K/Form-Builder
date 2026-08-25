@@ -275,6 +275,36 @@ Regra do projeto: componentes e paginas nao devem misturar logica com estetica. 
 
 O admin em `/admin` consome a API real para listar, criar, editar, publicar, despublicar e excluir formularios. A pagina publica `/f/:slug` carrega o formulario publicado por slug e envia respostas. A rota `/admin/forms/:formId/responses` lista as respostas recebidas.
 
+## Validacao manual local
+
+Com PostgreSQL, backend e frontend rodando, valide o fluxo principal no navegador:
+
+```text
+http://localhost:5173
+```
+
+Checklist:
+
+- Criar uma conta por e-mail e senha.
+- Entrar no admin em `/admin`.
+- Criar um formulario.
+- Adicionar campos ao formulario.
+- Salvar o formulario.
+- Publicar o formulario.
+- Abrir o link publico gerado em `/f/:slug`.
+- Enviar uma resposta sem autenticacao.
+- Voltar ao admin e abrir `/admin/forms/:formId/responses`.
+- Confirmar que a resposta enviada aparece na listagem.
+
+Sinais esperados:
+
+- Backend respondendo em `http://localhost:8080/healthz`.
+- Readiness respondendo em `http://localhost:8080/readyz`.
+- Frontend servindo em `http://localhost:5173`.
+- Cookie HTTP-only `form_builder_session` criado apos login.
+
+Se houver um PostgreSQL local usando a porta `5432`, pare esse servico antes de subir o PostgreSQL do Docker ou altere a porta publicada no `docker-compose.yml` e ajuste `DATABASE_URL`.
+
 ## OpenAPI e client TypeScript
 
 Sempre que uma rota, payload, schema ou status code da API mudar no backend, atualize primeiro a especificacao OpenAPI gerada:
