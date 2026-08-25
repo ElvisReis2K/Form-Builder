@@ -65,7 +65,7 @@ func spec() map[string]any {
 			"/api/auth/logout": map[string]any{
 				"post": map[string]any{
 					"summary":  "Logout current session",
-					"security": []map[string][]string{{"sessionCookie": []string{}}},
+					"security": sessionSecurity(),
 					"responses": map[string]any{
 						"204": emptyResponse("Session revoked"),
 					},
@@ -74,10 +74,99 @@ func spec() map[string]any {
 			"/api/auth/me": map[string]any{
 				"get": map[string]any{
 					"summary":  "Get current authenticated user",
-					"security": []map[string][]string{{"sessionCookie": []string{}}},
+					"security": sessionSecurity(),
 					"responses": map[string]any{
 						"200": jsonResponse("Authenticated user", "#/components/schemas/AuthResponse"),
 						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/forms": map[string]any{
+				"get": map[string]any{
+					"summary":  "List authenticated user's forms",
+					"security": sessionSecurity(),
+					"responses": map[string]any{
+						"200": jsonResponse("Forms list", "#/components/schemas/FormListResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+					},
+				},
+				"post": map[string]any{
+					"summary":     "Create a form draft",
+					"security":    sessionSecurity(),
+					"requestBody": jsonRequest("#/components/schemas/FormRequest"),
+					"responses": map[string]any{
+						"201": jsonResponse("Created form", "#/components/schemas/Form"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/forms/{formId}": map[string]any{
+				"get": map[string]any{
+					"summary":    "Get a form owned by the authenticated user",
+					"security":   sessionSecurity(),
+					"parameters": []map[string]any{pathParameter("formId", "Form ID")},
+					"responses": map[string]any{
+						"200": jsonResponse("Form", "#/components/schemas/Form"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+				"put": map[string]any{
+					"summary":     "Update a form owned by the authenticated user",
+					"security":    sessionSecurity(),
+					"parameters":  []map[string]any{pathParameter("formId", "Form ID")},
+					"requestBody": jsonRequest("#/components/schemas/FormRequest"),
+					"responses": map[string]any{
+						"200": jsonResponse("Updated form", "#/components/schemas/Form"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+				"delete": map[string]any{
+					"summary":    "Delete a form owned by the authenticated user",
+					"security":   sessionSecurity(),
+					"parameters": []map[string]any{pathParameter("formId", "Form ID")},
+					"responses": map[string]any{
+						"204": emptyResponse("Form deleted"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/forms/{formId}/publish": map[string]any{
+				"post": map[string]any{
+					"summary":    "Publish a form and expose a public slug",
+					"security":   sessionSecurity(),
+					"parameters": []map[string]any{pathParameter("formId", "Form ID")},
+					"responses": map[string]any{
+						"200": jsonResponse("Published form", "#/components/schemas/Form"),
+						"400": jsonResponse("Invalid request", "#/components/schemas/ErrorResponse"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/forms/{formId}/unpublish": map[string]any{
+				"post": map[string]any{
+					"summary":    "Return a published form to draft status",
+					"security":   sessionSecurity(),
+					"parameters": []map[string]any{pathParameter("formId", "Form ID")},
+					"responses": map[string]any{
+						"200": jsonResponse("Draft form", "#/components/schemas/Form"),
+						"401": jsonResponse("Unauthenticated", "#/components/schemas/ErrorResponse"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
+					},
+				},
+			},
+			"/api/public/forms/{slug}": map[string]any{
+				"get": map[string]any{
+					"summary":    "Get a published form by public slug",
+					"parameters": []map[string]any{pathParameter("slug", "Public form slug")},
+					"responses": map[string]any{
+						"200": jsonResponse("Published form", "#/components/schemas/Form"),
+						"404": jsonResponse("Form not found", "#/components/schemas/ErrorResponse"),
 					},
 				},
 			},
@@ -135,15 +224,79 @@ func spec() map[string]any {
 					"name": map[string]any{
 						"type": "string",
 					},
-					"createdAt": map[string]any{
-						"type":   "string",
-						"format": "date-time",
-					},
+					"createdAt": dateTimeSchema(),
 				}),
 				"AuthResponse": objectSchema([]string{"user"}, map[string]any{
-					"user": map[string]any{
-						"$ref": "#/components/schemas/User",
+					"user": refSchema("#/components/schemas/User"),
+				}),
+				"FormListResponse": objectSchema([]string{"forms"}, map[string]any{
+					"forms": arraySchema(refSchema("#/components/schemas/Form")),
+				}),
+				"Form": objectSchema([]string{"id", "title", "status", "fields", "createdAt", "updatedAt"}, map[string]any{
+					"id": map[string]any{
+						"type":   "string",
+						"format": "uuid",
 					},
+					"title": map[string]any{
+						"type": "string",
+					},
+					"description": nullableStringSchema(),
+					"status": map[string]any{
+						"type": "string",
+						"enum": []string{"draft", "published"},
+					},
+					"publicSlug": nullableStringSchema(),
+					"publicUrl":  nullableStringSchema(),
+					"publishedAt": map[string]any{
+						"type":     "string",
+						"format":   "date-time",
+						"nullable": true,
+					},
+					"fields":    arraySchema(refSchema("#/components/schemas/FormField")),
+					"createdAt": dateTimeSchema(),
+					"updatedAt": dateTimeSchema(),
+				}),
+				"FormField": objectSchema([]string{"id", "position", "type", "label", "required", "options", "config"}, map[string]any{
+					"id": map[string]any{
+						"type":   "string",
+						"format": "uuid",
+					},
+					"position": map[string]any{
+						"type": "integer",
+					},
+					"type": fieldTypeSchema(),
+					"label": map[string]any{
+						"type": "string",
+					},
+					"required": map[string]any{
+						"type": "boolean",
+					},
+					"placeholder": nullableStringSchema(),
+					"options":     arraySchema(map[string]any{"type": "string"}),
+					"config":      freeObjectSchema(),
+				}),
+				"FormRequest": objectSchema([]string{"title"}, map[string]any{
+					"title": map[string]any{
+						"type":      "string",
+						"minLength": 1,
+						"maxLength": 160,
+					},
+					"description": nullableStringSchema(),
+					"fields":      arraySchema(refSchema("#/components/schemas/FormFieldInput")),
+				}),
+				"FormFieldInput": objectSchema([]string{"type", "label"}, map[string]any{
+					"type": fieldTypeSchema(),
+					"label": map[string]any{
+						"type":      "string",
+						"minLength": 1,
+						"maxLength": 160,
+					},
+					"required": map[string]any{
+						"type": "boolean",
+					},
+					"placeholder": nullableStringSchema(),
+					"options":     arraySchema(map[string]any{"type": "string"}),
+					"config":      freeObjectSchema(),
 				}),
 				"ErrorResponse": objectSchema([]string{"error"}, map[string]any{
 					"error": objectSchema([]string{"code", "message"}, map[string]any{
@@ -160,14 +313,16 @@ func spec() map[string]any {
 	}
 }
 
+func sessionSecurity() []map[string][]string {
+	return []map[string][]string{{"sessionCookie": []string{}}}
+}
+
 func jsonRequest(ref string) map[string]any {
 	return map[string]any{
 		"required": true,
 		"content": map[string]any{
 			"application/json": map[string]any{
-				"schema": map[string]any{
-					"$ref": ref,
-				},
+				"schema": refSchema(ref),
 			},
 		},
 	}
@@ -178,9 +333,7 @@ func jsonResponse(description string, ref string) map[string]any {
 		"description": description,
 		"content": map[string]any{
 			"application/json": map[string]any{
-				"schema": map[string]any{
-					"$ref": ref,
-				},
+				"schema": refSchema(ref),
 			},
 		},
 	}
@@ -192,10 +345,63 @@ func emptyResponse(description string) map[string]any {
 	}
 }
 
+func pathParameter(name string, description string) map[string]any {
+	return map[string]any{
+		"name":        name,
+		"in":          "path",
+		"required":    true,
+		"description": description,
+		"schema": map[string]any{
+			"type": "string",
+		},
+	}
+}
+
 func objectSchema(required []string, properties map[string]any) map[string]any {
 	return map[string]any{
 		"type":       "object",
 		"required":   required,
 		"properties": properties,
+	}
+}
+
+func freeObjectSchema() map[string]any {
+	return map[string]any{
+		"type":                 "object",
+		"additionalProperties": true,
+	}
+}
+
+func fieldTypeSchema() map[string]any {
+	return map[string]any{
+		"type": "string",
+		"enum": []string{"text", "textarea", "email", "number", "select", "checkbox"},
+	}
+}
+
+func nullableStringSchema() map[string]any {
+	return map[string]any{
+		"type":     "string",
+		"nullable": true,
+	}
+}
+
+func dateTimeSchema() map[string]any {
+	return map[string]any{
+		"type":   "string",
+		"format": "date-time",
+	}
+}
+
+func arraySchema(item map[string]any) map[string]any {
+	return map[string]any{
+		"type":  "array",
+		"items": item,
+	}
+}
+
+func refSchema(ref string) map[string]any {
+	return map[string]any{
+		"$ref": ref,
 	}
 }

@@ -133,6 +133,63 @@ curl -i http://localhost:8080/api/auth/me \
   --cookie "form_builder_session=<cookie-value>"
 ```
 
+## CRUD de formularios
+
+O backend ja expõe CRUD autenticado para formularios. Campos sao persistidos junto com o formulario e substituidos em bloco no `PUT`, mantendo a camada de regra no backend.
+
+Rotas autenticadas:
+
+- `GET /api/forms`: lista formularios do usuario autenticado.
+- `POST /api/forms`: cria formulario em rascunho.
+- `GET /api/forms/{formId}`: consulta formulario do usuario autenticado.
+- `PUT /api/forms/{formId}`: atualiza titulo, descricao e campos.
+- `DELETE /api/forms/{formId}`: remove formulario.
+- `POST /api/forms/{formId}/publish`: publica e gera `publicSlug`.
+- `POST /api/forms/{formId}/unpublish`: volta o formulario para rascunho.
+
+Rota publica:
+
+- `GET /api/public/forms/{slug}`: consulta formulario publicado para preenchimento.
+
+Criar formulario:
+
+```bash
+curl -i http://localhost:8080/api/forms \
+  --cookie "form_builder_session=<cookie-value>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Pesquisa de satisfacao",
+    "description": "Formulario publico para clientes",
+    "fields": [
+      {
+        "type": "text",
+        "label": "Nome",
+        "required": true,
+        "placeholder": "Digite seu nome"
+      },
+      {
+        "type": "select",
+        "label": "Plano",
+        "required": true,
+        "options": ["Basic", "Pro", "Enterprise"]
+      }
+    ]
+  }'
+```
+
+Publicar formulario:
+
+```bash
+curl -i -X POST http://localhost:8080/api/forms/<form-id>/publish \
+  --cookie "form_builder_session=<cookie-value>"
+```
+
+Consultar formulario publicado:
+
+```bash
+curl -i http://localhost:8080/api/public/forms/<public-slug>
+```
+
 ## Frontend
 
 Instale as dependencias e rode o frontend:
@@ -180,4 +237,4 @@ Arquivos gerados ficam em `frontend/src/api/generated` e nao devem ser editados 
 
 ## Status
 
-Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes e autenticacao por e-mail/senha. As proximas etapas sao autenticar com Google, implementar CRUD de formularios, publicacao, validacao de respostas e integrar o frontend ao client TypeScript gerado.
+Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes, autenticacao por e-mail/senha e CRUD autenticado de formularios com publicacao. As proximas etapas sao integrar o frontend ao client TypeScript gerado, aceitar respostas publicas e encaixar autenticacao com Google.

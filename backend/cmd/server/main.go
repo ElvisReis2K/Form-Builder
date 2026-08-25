@@ -13,6 +13,7 @@ import (
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/auth"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/config"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/database"
+	"github.com/ElvisReis2K/Form-Builder/backend/internal/forms"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/httpserver"
 	"github.com/ElvisReis2K/Form-Builder/backend/internal/openapi"
 )
@@ -56,7 +57,12 @@ func runServer() {
 	authRepo := auth.NewRepository(db)
 	authService := auth.NewService(authRepo, cfg.SessionSecret, cfg.SessionTTL)
 	authHandler := auth.NewHandler(authService, cfg.CookieSecure)
-	server := httpserver.New(cfg, db, authHandler)
+
+	formsRepo := forms.NewRepository(db)
+	formsService := forms.NewService(formsRepo)
+	formsHandler := forms.NewHandler(authService, formsService)
+
+	server := httpserver.New(cfg, db, authHandler, formsHandler)
 
 	serverErrors := make(chan error, 1)
 	go func() {
