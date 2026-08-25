@@ -19,6 +19,15 @@ CREATE TABLE auth_identities (
   UNIQUE (provider, provider_subject)
 );
 
+CREATE TABLE sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash text NOT NULL UNIQUE,
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE forms (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -57,3 +66,5 @@ CREATE INDEX idx_forms_owner_id ON forms(owner_id);
 CREATE INDEX idx_forms_public_slug ON forms(public_slug);
 CREATE INDEX idx_form_fields_form_id ON form_fields(form_id);
 CREATE INDEX idx_form_responses_form_id ON form_responses(form_id);
+CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX idx_sessions_active_token_hash ON sessions(token_hash) WHERE revoked_at IS NULL;

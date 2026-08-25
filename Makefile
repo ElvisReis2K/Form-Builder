@@ -7,19 +7,19 @@ db-down:
 	docker compose down
 
 backend-dev:
-	cd backend && go run ./cmd/server
+	cd backend && go run ./cmd/server run
 
 frontend-dev:
 	cd frontend && npm run dev
 
 migrate-up:
-	cd backend && goose -dir ./migrations postgres "$$DATABASE_URL" up
+	cd backend && go run ./cmd/server migrate up
 
 migrate-down:
-	cd backend && goose -dir ./migrations postgres "$$DATABASE_URL" down
+	cd backend && go run ./cmd/server migrate down
 
 openapi:
-	cd backend && go run ./cmd/server --print-openapi > ./openapi/openapi.json
+	cd backend && go run ./cmd/server openapi > ./openapi/openapi.json
 
 client:
 	cd frontend && npm run generate:api

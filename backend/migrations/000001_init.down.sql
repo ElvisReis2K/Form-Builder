@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS form_responses;
 DROP TABLE IF EXISTS form_fields;
 DROP TABLE IF EXISTS forms;
+DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS auth_identities;
 DROP TABLE IF EXISTS users;
 DROP EXTENSION IF EXISTS pgcrypto;
