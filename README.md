@@ -17,7 +17,7 @@ Aplicacao full stack para criacao, publicacao e resposta de formularios. Este re
 
 - Go 1.25+.
 - Node.js 20+.
-- Docker com Docker Compose.
+- PostgreSQL 16+ ou Docker com Docker Compose para subir o PostgreSQL localmente.
 
 ## Estrutura
 
@@ -58,10 +58,24 @@ Variaveis principais:
 
 ## Banco de dados
 
-Suba o PostgreSQL local:
+Configure `DATABASE_URL` apontando para uma instancia PostgreSQL. Voce pode usar um PostgreSQL ja instalado na maquina ou subir o servico auxiliar via Docker Compose.
+
+Opcao com Docker Compose:
 
 ```bash
 make db-up
+```
+
+Opcao com PostgreSQL local:
+
+```bash
+createdb form_builder
+```
+
+Depois ajuste `.env`:
+
+```bash
+DATABASE_URL=postgres://<usuario>:<senha>@localhost:5432/form_builder?sslmode=disable
 ```
 
 As migrations ficam em `backend/migrations`.
@@ -232,7 +246,7 @@ Arquivos gerados ficam em `frontend/src/api/generated` e nao devem ser editados 
 ## Decisoes iniciais
 
 - Monorepo para simplificar setup local, revisao e DX.
-- PostgreSQL por ser multiplataforma, robusto e simples de subir via Docker Compose.
+- PostgreSQL por ser multiplataforma, robusto e adequado para persistencia relacional. O Docker Compose existe apenas como conveniencia para desenvolvimento local.
 - Vite em vez de Next.js para deixar claro que o backend Go e responsavel pela API, regras de negocio e persistencia.
 - Frontend organizado por `app`, `features`, `styles`, `lib` e `api`, mantendo estilos fora dos componentes e logica fora da camada visual.
 - Formularios, campos e respostas serao modelados em tabelas relacionais, com `jsonb` para configuracoes e respostas flexiveis.
