@@ -77,7 +77,7 @@ export default function LoginPage() {
     window.location.assign(apiURL('/api/auth/google'));
   }
 
-  const oauthError = searchParams.get('authError');
+  const oauthError = googleOAuthErrorMessage(searchParams.get('authError'));
 
   return (
     <Paper sx={loginPageStyles.panel}>
@@ -88,7 +88,7 @@ export default function LoginPage() {
         </Stack>
 
         {authMutation.error ? <Alert severity="error">{getErrorMessage(authMutation.error)}</Alert> : null}
-        {oauthError ? <Alert severity="error">Falha ao entrar com Google. Tente novamente.</Alert> : null}
+        {oauthError ? <Alert severity="error">{oauthError}</Alert> : null}
 
         {mode === 'register' ? (
           <TextField
@@ -152,6 +152,22 @@ export default function LoginPage() {
       </Stack>
     </Paper>
   );
+}
+
+function googleOAuthErrorMessage(error: string | null) {
+  if (error === 'google_oauth_not_configured') {
+    return 'Login com Google não configurado. Confira as credenciais no arquivo .env e reinicie o backend.';
+  }
+
+  if (error === 'google_oauth_denied') {
+    return 'Login com Google cancelado.';
+  }
+
+  if (error === 'google_oauth_failed') {
+    return 'Falha ao entrar com Google. Confira as credenciais e tente novamente.';
+  }
+
+  return null;
 }
 
 function safeAdminRedirect(value: string | null) {

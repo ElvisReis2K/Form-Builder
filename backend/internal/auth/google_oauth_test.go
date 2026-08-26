@@ -48,6 +48,18 @@ func TestGoogleOAuthConfiguredRequiresValidClientID(t *testing.T) {
 	}
 }
 
+func TestGoogleOAuthConfiguredAcceptsClientIDWithValidSuffix(t *testing.T) {
+	oauth := NewGoogleOAuth(GoogleOAuthConfig{
+		ClientID:     "clientidwithoutnumericprefix.apps.googleusercontent.com",
+		ClientSecret: "client-secret",
+		RedirectURL:  "http://localhost:8080/api/auth/google/callback",
+	})
+
+	if !oauth.Configured() {
+		t.Fatalf("expected oauth config to be valid, got %q", oauth.ConfigurationError())
+	}
+}
+
 func TestGoogleOAuthConfiguredRequiresClientSecret(t *testing.T) {
 	oauth := NewGoogleOAuth(GoogleOAuthConfig{
 		ClientID:    "123456789-clientid.apps.googleusercontent.com",

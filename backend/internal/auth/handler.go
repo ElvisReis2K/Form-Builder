@@ -151,7 +151,8 @@ func (handler *Handler) me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) googleStart(w http.ResponseWriter, r *http.Request) {
-	if !handler.googleOAuthConfigured(w) {
+	if reason := handler.googleOAuthConfigurationError(); reason != "" {
+		http.Redirect(w, r, handler.frontendRedirect("/", "google_oauth_not_configured"), http.StatusFound)
 		return
 	}
 
@@ -203,16 +204,23 @@ func (handler *Handler) googleCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) googleOAuthConfigured(w http.ResponseWriter) bool {
-	if handler.googleOAuth == nil {
-		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google não configurado")
-		return false
-	}
-	if reason := handler.googleOAuth.ConfigurationError(); reason != "" {
+	if reason := handler.googleOAuthConfigurationError(); reason != "" {
 		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", reason)
 		return false
 	}
 
 	return true
+}
+
+func (handler *Handler) googleOAuthConfigurationError() string {
+	if handler.googleOAuth == nil {
+		return "login com Google não configurado"
+	}
+	if reason := handler.googleOAuth.ConfigurationError(); reason != "" {
+		return reason
+	}
+
+	return ""
 }
 
 func (handler *Handler) setSessionCookie(w http.ResponseWriter, token string, expiresAt time.Time) {

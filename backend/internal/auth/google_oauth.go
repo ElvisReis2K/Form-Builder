@@ -19,7 +19,7 @@ const (
 	googleOAuthScopes           = "openid email profile"
 )
 
-var googleClientIDPattern = regexp.MustCompile(`^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$`)
+var googleClientIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$`)
 
 type GoogleOAuthConfig struct {
 	ClientID     string
