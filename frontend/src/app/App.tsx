@@ -1,6 +1,6 @@
 import { AppBar, Box, Button, Container, Stack, Toolbar, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 import { getApiAuthMe } from '../api/generated/client';
 import { authMeQueryKey } from '../features/auth/queryKeys';
@@ -9,12 +9,14 @@ import AppRoutes from './AppRoutes';
 import { authenticatedNavItems, guestNavItems } from './navigation';
 
 export default function App() {
+  const location = useLocation();
   const authQuery = useQuery({
     queryKey: authMeQueryKey,
     queryFn: () => getApiAuthMe(),
     retry: false,
   });
-  const navItems = authQuery.isSuccess ? authenticatedNavItems : guestNavItems;
+  const isLoginPage = location.pathname === '/';
+  const navItems = authQuery.isSuccess && !isLoginPage ? authenticatedNavItems : guestNavItems;
 
   return (
     <Box sx={appStyles.root}>
