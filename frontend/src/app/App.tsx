@@ -1,11 +1,21 @@
 import { AppBar, Box, Button, Container, Stack, Toolbar, Typography } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
 
+import { getApiAuthMe } from '../api/generated/client';
+import { authMeQueryKey } from '../features/auth/queryKeys';
 import { appStyles } from './app.styles';
 import AppRoutes from './AppRoutes';
-import { navItems } from './navigation';
+import { authenticatedNavItems, guestNavItems } from './navigation';
 
 export default function App() {
+  const authQuery = useQuery({
+    queryKey: authMeQueryKey,
+    queryFn: () => getApiAuthMe(),
+    retry: false,
+  });
+  const navItems = authQuery.isSuccess ? authenticatedNavItems : guestNavItems;
+
   return (
     <Box sx={appStyles.root}>
       <AppBar position="static" color="default" elevation={0} sx={appStyles.appBar}>

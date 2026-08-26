@@ -1,16 +1,18 @@
 import { Alert, Button, Link, Paper, Stack, TextField, Typography } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { apiURL, getErrorMessage, postApiAuthLogin, postApiAuthRegister } from '../../../api/generated/client';
 
+import { authMeQueryKey } from '../queryKeys';
 import { loginPageStyles } from '../styles/loginPage.styles';
 
 type AuthMode = 'login' | 'register';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('login');
   const [name, setName] = useState('');
@@ -30,7 +32,8 @@ export default function LoginPage() {
         body: { email, password },
       });
     },
-    onSuccess: () => {
+    onSuccess: (authResponse) => {
+      queryClient.setQueryData(authMeQueryKey, authResponse);
       navigate(redirectTo, { replace: true });
     },
   });
@@ -115,7 +118,7 @@ export default function LoginPage() {
 }
 
 function safeAdminRedirect(value: string | null) {
-  if (value !== null && value.startsWith('/admin')) {
+  if (value === '/admin' || value?.startsWith('/admin/')) {
     return value;
   }
 

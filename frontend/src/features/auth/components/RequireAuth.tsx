@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import { getApiAuthMe } from '../../../api/generated/client';
+import { authMeQueryKey } from '../queryKeys';
 import { authGateStyles } from '../styles/authGate.styles';
 
 type RequireAuthProps = {
@@ -13,7 +14,7 @@ type RequireAuthProps = {
 export default function RequireAuth({ children }: RequireAuthProps) {
   const location = useLocation();
   const authQuery = useQuery({
-    queryKey: ['auth', 'me'],
+    queryKey: authMeQueryKey,
     queryFn: () => getApiAuthMe(),
     retry: false,
   });
