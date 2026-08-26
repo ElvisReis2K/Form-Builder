@@ -43,6 +43,29 @@ func (repo *Repository) CreateUser(ctx context.Context, email string, name strin
 	return user, nil
 }
 
+func (repo *Repository) EnsureUserPassword(ctx context.Context, email string, name string, passwordHash string) error {
+	_, err := repo.db.Exec(ctx, `
+		INSERT INTO users (email, name, password_hash)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (email) DO UPDATE
+		SET
+			name = CASE
+				WHEN btrim(users.name) = '' THEN EXCLUDED.name
+				ELSE users.name
+			END,
+			password_hash = COALESCE(NULLIF(users.password_hash, ''), EXCLUDED.password_hash),
+			updated_at = CASE
+				WHEN btrim(users.name) = '' OR users.password_hash IS NULL OR users.password_hash = '' THEN now()
+				ELSE users.updated_at
+			END
+	`, email, name, passwordHash)
+	if err != nil {
+		return fmt.Errorf("ensure user password: %w", err)
+	}
+
+	return nil
+}
+
 func (repo *Repository) FindUserByIdentity(ctx context.Context, provider string, subject string) (User, error) {
 	var user User
 	err := repo.db.QueryRow(ctx, `

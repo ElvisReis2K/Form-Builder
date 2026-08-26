@@ -5,6 +5,7 @@ Aplicação full stack para criação, publicação e resposta de formulários. 
 ## O que o sistema faz
 
 - Permite criar conta e entrar como administrador por e-mail/senha.
+- Cria um usuário administrador padrão para facilitar teste local, quando o seed estiver ativado.
 - Permite entrar com conta Google usando OAuth 2.0.
 - Exibe, após login, uma tela de formulários salvos.
 - Mantém a área administrativa protegida por autenticação.
@@ -107,6 +108,15 @@ O arquivo `.env` deve ficar na raiz do projeto, no mesmo nível de `README.md`, 
 
 Nunca envie o `.env` para o GitHub. Ele fica ignorado pelo `.gitignore`.
 
+Com o `.env.example`, o projeto já vem preparado para criar um usuário padrão de desenvolvimento:
+
+```text
+e-mail: admin@gmail.com
+senha: 12345678
+```
+
+Esse usuário é criado quando você roda as migrations com `go run ./cmd/server migrate up`.
+
 ### 3. Suba o PostgreSQL
 
 Abra o Docker Desktop e espere ele iniciar. Depois rode:
@@ -146,6 +156,13 @@ Mensagem esperada:
 
 ```text
 migrate up completed
+```
+
+Se `SEED_DEFAULT_ADMIN=true` estiver no `.env`, o backend também confere/cria o usuário padrão:
+
+```text
+e-mail: admin@gmail.com
+senha: 12345678
 ```
 
 ### 6. Inicie o backend
@@ -293,6 +310,10 @@ FRONTEND_URL=http://localhost:5173
 SESSION_SECRET=dev-session-secret-change-me-before-production
 SESSION_TTL_HOURS=168
 COOKIE_SECURE=false
+SEED_DEFAULT_ADMIN=true
+DEFAULT_ADMIN_NAME=Administrador
+DEFAULT_ADMIN_EMAIL=admin@gmail.com
+DEFAULT_ADMIN_PASSWORD=12345678
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
@@ -306,6 +327,10 @@ Significado de cada variável:
 - `SESSION_SECRET`: segredo usado para proteger tokens de sessão.
 - `SESSION_TTL_HOURS`: tempo de validade da sessão.
 - `COOKIE_SECURE`: use `false` em local com HTTP e `true` em produção com HTTPS.
+- `SEED_DEFAULT_ADMIN`: quando `true`, cria o usuário padrão ao rodar `migrate up`.
+- `DEFAULT_ADMIN_NAME`: nome do usuário padrão.
+- `DEFAULT_ADMIN_EMAIL`: e-mail do usuário padrão.
+- `DEFAULT_ADMIN_PASSWORD`: senha do usuário padrão.
 - `GOOGLE_CLIENT_ID`: Client ID do OAuth Google.
 - `GOOGLE_CLIENT_SECRET`: Client Secret do mesmo OAuth Client.
 - `GOOGLE_REDIRECT_URL`: URL de callback cadastrada no Google Cloud.
@@ -313,6 +338,12 @@ Significado de cada variável:
 Não coloque aspas ao redor dos valores e não coloque espaços antes ou depois do `=`.
 
 Sempre que alterar o `.env`, pare e inicie o backend novamente.
+
+Em produção ou em qualquer ambiente público, altere a senha padrão ou defina:
+
+```env
+SEED_DEFAULT_ADMIN=false
+```
 
 ## Login com Google localmente
 
@@ -436,6 +467,13 @@ http://localhost:5173
 1. Na tela inicial, informe e-mail e senha.
 2. Clique em **Entrar**.
 3. Após o login, a aplicação abre a tela de **Formulários salvos**.
+
+Se você acabou de rodar as migrations com o seed ativado, pode entrar com:
+
+```text
+e-mail: admin@gmail.com
+senha: 12345678
+```
 
 ### Entrar com Google
 
@@ -777,6 +815,13 @@ Google OAuth não funciona:
 - Reinicie o backend após editar o `.env`.
 - Aguarde alguns minutos caso tenha acabado de criar ou alterar o OAuth Client.
 
+Usuário padrão não entra:
+
+- Confira se `SEED_DEFAULT_ADMIN=true` está no `.env`.
+- Rode novamente `cd backend` e depois `go run ./cmd/server migrate up`.
+- Use exatamente `admin@gmail.com` e `12345678`, a menos que tenha alterado `DEFAULT_ADMIN_EMAIL` ou `DEFAULT_ADMIN_PASSWORD`.
+- Se esse e-mail já existia no banco com outra senha, o seed não sobrescreve a senha existente.
+
 ## Checklist para saber se tudo está funcionando
 
 - `docker compose up -d postgres` rodou sem erro, se você escolheu Docker.
@@ -786,6 +831,7 @@ Google OAuth não funciona:
 - `http://localhost:8080/readyz` abre no navegador.
 - Frontend mostra `Local: http://localhost:5173/`.
 - `http://localhost:5173` abre a tela de login.
+- Login com `admin@gmail.com` e `12345678` funciona quando o seed padrão está ativado.
 - Cadastro por e-mail e senha funciona.
 - Login por Google funciona depois de configurar OAuth.
 - Após login, a primeira tela é **Formulários salvos**.
@@ -805,6 +851,7 @@ O projeto já possui a base real exigida para o fluxo principal:
 - Backend Go independente.
 - PostgreSQL com migrations.
 - Usuários e sessões.
+- Usuário administrador padrão para desenvolvimento local.
 - Login por e-mail/senha.
 - Login com Google OAuth.
 - CRUD autenticado de formulários.

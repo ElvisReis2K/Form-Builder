@@ -26,6 +26,12 @@ type LoginInput struct {
 	Password string
 }
 
+type DefaultAdminInput struct {
+	Name     string
+	Email    string
+	Password string
+}
+
 type GoogleIdentityInput struct {
 	Subject string
 	Email   string

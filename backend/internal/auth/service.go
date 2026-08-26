@@ -94,6 +94,34 @@ func (service *Service) Login(ctx context.Context, input LoginInput) (AuthResult
 	return service.createSession(ctx, user.User)
 }
 
+func (service *Service) EnsureDefaultAdmin(ctx context.Context, input DefaultAdminInput) error {
+	name := strings.TrimSpace(input.Name)
+	email := normalizeEmail(input.Email)
+
+	if name == "" {
+		return ValidationError{Message: "nome do usuário padrão é obrigatório"}
+	}
+
+	if err := validateEmail(email); err != nil {
+		return err
+	}
+
+	if err := validatePassword(input.Password); err != nil {
+		return err
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("hash default admin password: %w", err)
+	}
+
+	if err := service.repo.EnsureUserPassword(ctx, email, name, string(passwordHash)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (service *Service) LoginWithGoogle(ctx context.Context, input GoogleIdentityInput) (AuthResult, error) {
 	subject := strings.TrimSpace(input.Subject)
 	email := normalizeEmail(input.Email)

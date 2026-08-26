@@ -118,6 +118,18 @@ func runMigrations() {
 	switch direction {
 	case "up":
 		err = database.MigrateUp(ctx, db)
+		if err == nil && cfg.SeedDefaultAdmin {
+			authRepo := auth.NewRepository(db)
+			authService := auth.NewService(authRepo, cfg.SessionSecret, cfg.SessionTTL)
+			err = authService.EnsureDefaultAdmin(ctx, auth.DefaultAdminInput{
+				Name:     cfg.DefaultAdminName,
+				Email:    cfg.DefaultAdminEmail,
+				Password: cfg.DefaultAdminPassword,
+			})
+			if err == nil {
+				log.Printf("default admin seed checked for %s", cfg.DefaultAdminEmail)
+			}
+		}
 	case "down":
 		err = database.MigrateDown(ctx, db)
 	default:
