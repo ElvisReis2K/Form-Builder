@@ -1,207 +1,359 @@
 # Form Builder
 
-Aplicação full stack para criação, publicação e resposta de formulários. Este repositório foi criado para o desafio técnico de Full Stack Developer.
+Aplicação full stack para criação, publicação e resposta de formulários. O projeto foi feito para um teste prático de vaga Full Stack Developer e os requisitos do PDF são tratados como regra do projeto.
 
-## Stack escolhida
+## O que o sistema faz
 
-- Backend: Go como serviço independente.
-- Banco: PostgreSQL.
+- Permite criar conta e entrar como administrador por e-mail/senha.
+- Permite entrar com conta Google usando OAuth 2.0.
+- Exibe, após login, uma tela de formulários salvos.
+- Mantém a área administrativa protegida por autenticação.
+- Permite criar, editar e excluir formulários.
+- Permite adicionar e configurar campos.
+- Permite publicar um formulário e gerar uma URL pública.
+- Permite que qualquer pessoa com a URL pública responda sem login.
+- Armazena respostas no banco de dados.
+- Permite ao administrador consultar, exportar e excluir respostas.
+- Inclui política de privacidade, aviso público e registros mínimos de ciência LGPD.
+
+## Tecnologias
+
+- Backend: Go 1.25+ como serviço independente.
+- Banco de dados: PostgreSQL.
 - Frontend: React, TypeScript e Vite.
 - UI: MUI.
 - Rotas: React Router.
-- Estado remoto: TanStack Query.
-- Contrato de API: OpenAPI 3.
-- Client TypeScript: gerado a partir da especificação OpenAPI.
+- Requisições/cache: TanStack Query.
+- Contrato da API: OpenAPI 3.
+- Client TypeScript: gerado a partir do OpenAPI.
+- Docker: usado apenas como conveniência para subir o PostgreSQL localmente.
 
-## Requisitos locais
-
-- Go 1.25+.
-- Node.js 20+.
-- PostgreSQL 16+ ou Docker com Docker Compose para subir o PostgreSQL localmente.
-
-## Estrutura
+## Estrutura do projeto
 
 ```text
 .
 ├── backend/
-│   ├── cmd/server/
-│   ├── internal/
-│   ├── migrations/
-│   └── openapi/
+│   ├── cmd/server/              # Entrada do backend Go
+│   ├── internal/                # Regras, handlers, repositórios e serviços
+│   ├── migrations/              # Migrations SQL executadas pelo backend
+│   └── openapi/                 # Especificação OpenAPI gerada
 ├── frontend/
 │   └── src/
-│       ├── app/
-│       ├── api/
-│       ├── features/
-│       ├── lib/
-│       └── styles/
+│       ├── api/                 # Client e tipos gerados pelo OpenAPI
+│       ├── app/                 # Rotas e providers
+│       ├── features/            # Funcionalidades por domínio
+│       ├── lib/                 # Helpers sem UI
+│       └── styles/              # Tema e estilos compartilhados
 ├── scripts/
 ├── docker-compose.yml
 ├── Makefile
-├── CONTRIBUTING.md
+├── .env.example
 └── README.md
 ```
 
-## Configuração
+## Pré-requisitos
 
-Copie `.env.example` para `.env` e ajuste os valores conforme necessário.
+Antes de começar, instale:
 
-Variáveis principais:
+- Git.
+- Go 1.25 ou superior.
+- Node.js 20 ou superior.
+- PostgreSQL 16+ ou Docker Desktop.
 
-- `ADDRESS`: endereço do backend.
-- `DATABASE_URL`: conexão do PostgreSQL.
-- `FRONTEND_URL`: origem permitida para o frontend.
-- `SESSION_SECRET`: segredo usado para gerar o hash dos tokens de sessão.
-- `SESSION_TTL_HOURS`: duração da sessão em horas.
-- `COOKIE_SECURE`: use `true` quando a API estiver atrás de HTTPS.
-- `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`: credenciais OAuth do Google.
-- `GOOGLE_REDIRECT_URL`: callback autorizado no Google Cloud. Em local, use `http://localhost:8080/api/auth/google/callback`.
+Você pode rodar o sistema com Docker ou sem Docker.
 
-## Banco de dados
+Com Docker, o Docker sobe somente o PostgreSQL. O backend e o frontend continuam rodando direto na sua máquina.
 
-Configure `DATABASE_URL` apontando para uma instância PostgreSQL. Você pode usar um PostgreSQL já instalado na máquina ou subir o serviço auxiliar via Docker Compose.
+Sem Docker, você precisa ter o PostgreSQL instalado e criar o banco manualmente.
 
-Opção com Docker Compose:
+## Passo a passo rápido com Docker
 
-```bash
-make db-up
+Este é o caminho mais simples para rodar localmente.
+
+### 1. Clone o repositório
+
+```powershell
+git clone https://github.com/ElvisReis2K/Form-Builder.git
+cd Form-Builder
 ```
 
-Opção com PostgreSQL local:
-
-```bash
-createdb form_builder
-```
-
-Depois ajuste `.env`:
-
-```bash
-DATABASE_URL=postgres://<usuario>:<senha>@localhost:5432/form_builder?sslmode=disable
-```
-
-As migrations ficam em `backend/migrations`.
-
-```bash
-make migrate-up
-```
-
-Para desfazer a última migration aplicada:
-
-```bash
-make migrate-down
-```
-
-## Backend
-
-O backend roda como um serviço independente em Go:
-
-```bash
-make backend-dev
-```
-
-Health check:
-
-```bash
-curl http://localhost:8080/healthz
-```
-
-Readiness com ping no PostgreSQL:
-
-```bash
-curl http://localhost:8080/readyz
-```
-
-Comandos do binário:
-
-```bash
-cd backend
-go run ./cmd/server run
-go run ./cmd/server migrate up
-go run ./cmd/server migrate down
-go run ./cmd/server openapi
-```
-
-## Autenticação por e-mail e senha
-
-A base atual possui cadastro, login, logout e consulta do usuário autenticado. A sessão usa cookie HTTP-only (`form_builder_session`) e persiste apenas o hash HMAC do token no banco.
-
-No frontend, a área administrativa só reutiliza a sessão durante a execução atual da SPA. Ao recarregar uma rota administrativa ou abrir uma rota protegida diretamente, a aplicação encerra a sessão no backend e exige login novamente.
-
-Cadastro:
-
-```bash
-curl -i http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Admin","email":"admin@example.com","password":"password123"}'
-```
-
-Login:
-
-```bash
-curl -i http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"password123"}'
-```
-
-Usuário autenticado:
-
-```bash
-curl -i http://localhost:8080/api/auth/me \
-  --cookie "form_builder_session=<cookie-value>"
-```
-
-## Autenticação com Google
-
-O login com Google usa OAuth 2.0 Authorization Code no backend Go. O frontend apenas redireciona para `GET /api/auth/google`; o callback valida `state`, consulta o perfil no Google e cria a mesma sessão HTTP-only usada pelo login por e-mail/senha.
-
-### Como configurar o login Google localmente
-
-O login com Google depende de credenciais OAuth do Google Cloud. Essas credenciais identificam a aplicação para o Google e precisam existir em cada ambiente onde o projeto for executado.
-
-Por segurança, o arquivo `.env` não é versionado. Então, quem clonar o repositório precisa criar ou receber credenciais OAuth e preencher o próprio `.env` localmente.
-
-1. Acesse o Google Cloud Console.
-2. Crie ou selecione um projeto.
-3. Abra **APIs & Services** ou **Google Auth Platform**.
-4. Configure a tela de consentimento OAuth:
-   - Informe o nome da aplicação.
-   - Informe o e-mail de suporte.
-   - Em ambiente local/teste, use o modo de teste se aplicável.
-   - Se o app estiver em modo de teste, adicione seu e-mail Google em **Test users**.
-5. Vá em **Clients** ou **Credentials**.
-6. Crie um OAuth Client:
-   - Application type: **Web application**.
-   - Name: qualquer nome claro, por exemplo `Form Builder Local`.
-7. Em **Authorized JavaScript origins**, adicione exatamente:
-
-```text
-http://localhost:5173
-```
-
-8. Em **Authorized redirect URIs**, adicione exatamente:
-
-```text
-http://localhost:8080/api/auth/google/callback
-```
-
-9. Salve o client e copie:
-   - **Client ID**
-   - **Client secret**
-
-10. Na raiz do projeto, crie o `.env` se ele ainda não existir:
+Se você já tem a pasta do projeto, entre nela:
 
 ```powershell
 cd "C:\Users\ElviZ\Documents\ChatGPT\Teste Prático Falqon"
+```
+
+### 2. Crie o arquivo `.env`
+
+Na raiz do projeto, copie o exemplo:
+
+```powershell
 Copy-Item .env.example .env
 ```
 
-11. Abra o arquivo:
+Abra o arquivo:
 
 ```powershell
 notepad .env
 ```
 
-12. Preencha as variáveis do Google:
+Para usar o PostgreSQL do Docker, deixe o `DATABASE_URL` assim:
+
+```env
+DATABASE_URL=postgres://form_builder:form_builder@localhost:5432/form_builder?sslmode=disable
+```
+
+O arquivo `.env` deve ficar na raiz do projeto, no mesmo nível de `README.md`, `backend`, `frontend` e `docker-compose.yml`.
+
+Nunca envie o `.env` para o GitHub. Ele fica ignorado pelo `.gitignore`.
+
+### 3. Suba o PostgreSQL
+
+Abra o Docker Desktop e espere ele iniciar. Depois rode:
+
+```powershell
+docker compose up -d postgres
+```
+
+Esse comando cria um banco PostgreSQL em:
+
+```text
+host: localhost
+porta: 5432
+banco: form_builder
+usuário: form_builder
+senha: form_builder
+```
+
+Se você já tiver PostgreSQL instalado usando a porta `5432`, o Docker pode dar conflito ou o backend pode conectar no banco errado. Nesse caso, pare o serviço local do PostgreSQL ou rode o projeto sem Docker usando os dados corretos do seu banco.
+
+### 4. Baixe dependências do backend
+
+```powershell
+cd backend
+go mod tidy
+```
+
+### 5. Rode as migrations
+
+Ainda dentro de `backend`, rode:
+
+```powershell
+go run ./cmd/server migrate up
+```
+
+Mensagem esperada:
+
+```text
+migrate up completed
+```
+
+### 6. Inicie o backend
+
+Ainda dentro de `backend`, rode:
+
+```powershell
+go run ./cmd/server run
+```
+
+Deixe esse terminal aberto.
+
+Mensagem esperada:
+
+```text
+server listening on http://localhost:8080
+```
+
+Para testar no navegador, abra:
+
+```text
+http://localhost:8080/healthz
+```
+
+Também existe o teste de conexão com o banco:
+
+```text
+http://localhost:8080/readyz
+```
+
+### 7. Instale dependências do frontend
+
+Abra um segundo terminal na raiz do projeto e rode:
+
+```powershell
+cd frontend
+npm install
+```
+
+### 8. Inicie o frontend
+
+Ainda dentro de `frontend`, rode:
+
+```powershell
+npm run dev
+```
+
+Deixe esse terminal aberto.
+
+Mensagem esperada:
+
+```text
+Local: http://localhost:5173/
+```
+
+Abra no navegador:
+
+```text
+http://localhost:5173
+```
+
+## Passo a passo sem Docker
+
+Use esta opção se você prefere usar um PostgreSQL instalado diretamente na máquina.
+
+### 1. Instale e inicie o PostgreSQL
+
+Instale PostgreSQL 16 ou superior. Depois confirme que o serviço está rodando.
+
+No Windows, você pode verificar no PowerShell:
+
+```powershell
+Get-Service *postgres*
+```
+
+### 2. Crie usuário e banco
+
+Entre no `psql` com um usuário administrador, por exemplo `postgres`:
+
+```powershell
+psql -U postgres
+```
+
+Crie usuário e banco:
+
+```sql
+CREATE USER form_builder WITH PASSWORD 'form_builder';
+CREATE DATABASE form_builder OWNER form_builder;
+```
+
+Saia do `psql`:
+
+```sql
+\q
+```
+
+### 3. Configure o `.env`
+
+Na raiz do projeto:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+Se você criou o banco igual ao exemplo acima, use:
+
+```env
+DATABASE_URL=postgres://form_builder:form_builder@localhost:5432/form_builder?sslmode=disable
+```
+
+Se você usa outro usuário, senha, porta ou nome de banco, ajuste o valor:
+
+```env
+DATABASE_URL=postgres://seu_usuario:sua_senha@localhost:5432/seu_banco?sslmode=disable
+```
+
+Depois siga os mesmos passos do modo com Docker:
+
+```powershell
+cd backend
+go mod tidy
+go run ./cmd/server migrate up
+go run ./cmd/server run
+```
+
+Em outro terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+## Configuração do `.env`
+
+O backend lê variáveis de ambiente e também carrega o arquivo `.env` da raiz do projeto.
+
+Exemplo completo para desenvolvimento local:
+
+```env
+ADDRESS=localhost:8080
+DATABASE_URL=postgres://form_builder:form_builder@localhost:5432/form_builder?sslmode=disable
+FRONTEND_URL=http://localhost:5173
+SESSION_SECRET=dev-session-secret-change-me-before-production
+SESSION_TTL_HOURS=168
+COOKIE_SECURE=false
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
+```
+
+Significado de cada variável:
+
+- `ADDRESS`: endereço onde o backend Go vai rodar.
+- `DATABASE_URL`: conexão do PostgreSQL.
+- `FRONTEND_URL`: endereço do frontend autorizado pelo backend.
+- `SESSION_SECRET`: segredo usado para proteger tokens de sessão.
+- `SESSION_TTL_HOURS`: tempo de validade da sessão.
+- `COOKIE_SECURE`: use `false` em local com HTTP e `true` em produção com HTTPS.
+- `GOOGLE_CLIENT_ID`: Client ID do OAuth Google.
+- `GOOGLE_CLIENT_SECRET`: Client Secret do mesmo OAuth Client.
+- `GOOGLE_REDIRECT_URL`: URL de callback cadastrada no Google Cloud.
+
+Não coloque aspas ao redor dos valores e não coloque espaços antes ou depois do `=`.
+
+Sempre que alterar o `.env`, pare e inicie o backend novamente.
+
+## Login com Google localmente
+
+O código já tem login com Google, mas as credenciais do Google não podem ir para o GitHub. Por isso, cada pessoa que clonar o projeto precisa configurar o próprio OAuth Client no Google Cloud.
+
+Isso é uma regra de segurança: se o `GOOGLE_CLIENT_SECRET` fosse versionado, qualquer pessoa poderia usar a credencial privada do projeto.
+
+### Criar credenciais no Google Cloud
+
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/).
+2. Crie ou selecione um projeto.
+3. Abra **APIs & Services** ou **Google Auth Platform**.
+4. Configure a tela de consentimento OAuth.
+5. Informe nome do app e e-mail de suporte.
+6. Para teste local, você pode deixar o app em modo de teste e adicionar seu e-mail em **Test users**.
+7. Se quiser que qualquer conta Google consiga entrar sem estar em **Test users**, publique a tela de consentimento em produção.
+8. Vá em **Clients** ou **Credentials**.
+9. Crie um OAuth Client do tipo **Web application**.
+10. Em **Authorized JavaScript origins**, adicione exatamente:
+
+```text
+http://localhost:5173
+```
+
+11. Em **Authorized redirect URIs**, adicione exatamente:
+
+```text
+http://localhost:8080/api/auth/google/callback
+```
+
+12. Salve e copie o **Client ID** e o **Client secret**.
+
+### Preencher no `.env`
+
+Abra o `.env` da raiz:
+
+```powershell
+notepad .env
+```
+
+Preencha:
 
 ```env
 GOOGLE_CLIENT_ID=cole_aqui_o_client_id_completo
@@ -209,41 +361,13 @@ GOOGLE_CLIENT_SECRET=cole_aqui_o_client_secret
 GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
 ```
 
-O `GOOGLE_CLIENT_ID` deve ser o valor completo que termina em:
+O `GOOGLE_CLIENT_ID` precisa ser o valor completo que termina com:
 
 ```text
 .apps.googleusercontent.com
 ```
 
-Não use API key, Service Account, Project ID ou Client Secret no campo `GOOGLE_CLIENT_ID`.
-
-13. Reinicie o backend para carregar o `.env` atualizado:
-
-```powershell
-cd "C:\Users\ElviZ\Documents\ChatGPT\Teste Prático Falqon\backend"
-go run ./cmd/server run
-```
-
-14. Em outro terminal, rode o frontend:
-
-```powershell
-cd "C:\Users\ElviZ\Documents\ChatGPT\Teste Prático Falqon\frontend"
-npm run dev
-```
-
-15. Abra `http://localhost:5173` e clique em **Continuar com Google**.
-
-### Observações importantes
-
-- Não coloque aspas ao redor dos valores no `.env`.
-- Não coloque espaços antes ou depois do `=`.
-- O `GOOGLE_CLIENT_SECRET` deve vir do mesmo OAuth Client do `GOOGLE_CLIENT_ID`.
-- Depois de alterar o `.env`, sempre reinicie o backend.
-- O `GOOGLE_CLIENT_SECRET` nunca deve ser enviado para o GitHub.
-- O app usa os escopos `openid email profile`; não é necessário ativar APIs adicionais só para login.
-- Se outra pessoa clonar o projeto, ela também precisará configurar o próprio `.env` com credenciais OAuth válidas.
-
-Exemplo de formato esperado:
+Exemplo do formato esperado:
 
 ```env
 GOOGLE_CLIENT_ID=1234567890-abcdefg.apps.googleusercontent.com
@@ -251,246 +375,442 @@ GOOGLE_CLIENT_SECRET=GOCSPX-exemplo_de_secret
 GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
 ```
 
-Se aparecer `Erro 401: invalid_client` na tela do Google, confira:
+Não use API Key, Project ID, Service Account ou Client Secret no campo `GOOGLE_CLIENT_ID`.
 
-- O backend foi reiniciado depois da alteração no `.env`.
-- O `GOOGLE_CLIENT_ID` é o **Client ID completo**, terminando em `.apps.googleusercontent.com`.
-- O `GOOGLE_CLIENT_SECRET` deve vir do mesmo OAuth Client do Google Cloud.
-- O OAuth Client deve ser do tipo **Web application**.
-- O redirect URI autorizado deve ser exatamente `http://localhost:8080/api/auth/google/callback`.
+Depois de salvar o `.env`, reinicie o backend:
 
-Se aparecer `redirect_uri_mismatch`, confira se o valor em **Authorized redirect URIs** é exatamente igual ao `GOOGLE_REDIRECT_URL`, sem barra final extra.
-
-Se aparecer uma tela dizendo que o app não foi verificado ou que o acesso está bloqueado para o usuário, confira a tela de consentimento OAuth e adicione seu e-mail em **Test users** enquanto o app estiver em modo de teste.
-
-Rotas:
-
-- `GET /api/auth/google`: inicia login e redireciona para o Google.
-- `GET /api/auth/google/callback`: recebe `code` e `state`, cria/associa o usuário e redireciona para `/admin`.
-
-## CRUD de formulários
-
-O backend já expõe CRUD autenticado para formulários. Campos são persistidos junto com o formulário e substituídos em bloco no `PUT`, mantendo a camada de regra no backend. Cada formulário também possui metadados de privacidade usados no aviso público: e-mail do controlador, finalidade do tratamento e política de retenção.
-
-Rotas autenticadas:
-
-- `GET /api/forms`: lista formulários do usuário autenticado.
-- `POST /api/forms`: cria formulário em rascunho.
-- `GET /api/forms/{formId}`: consulta formulário do usuário autenticado.
-- `PUT /api/forms/{formId}`: atualiza título, descrição e campos.
-- `DELETE /api/forms/{formId}`: remove formulário.
-- `POST /api/forms/{formId}/publish`: publica e gera `publicSlug`.
-- `POST /api/forms/{formId}/unpublish`: volta o formulário para rascunho.
-
-Rota pública:
-
-- `GET /api/public/forms/{slug}`: consulta formulário publicado para preenchimento.
-- `POST /api/public/forms/{slug}/responses`: envia uma resposta pública para formulário publicado.
-
-Respostas:
-
-- `GET /api/forms/{formId}/responses`: lista respostas recebidas por formulário do usuário autenticado.
-- `GET /api/forms/{formId}/responses/export`: exporta respostas em JSON para atendimento administrativo.
-- `DELETE /api/forms/{formId}/responses/{responseId}`: exclui uma resposta específica do formulário.
-
-O frontend também permite exportar a listagem de respostas em PDF e Excel a partir do painel administrativo.
-
-Ao editar um formulário, os IDs dos campos existentes são preservados para manter as respostas já enviadas associadas às colunas corretas. Caso existam respostas antigas gravadas com campos que já foram removidos, a tela e as exportações exibem esses valores em "Outros dados salvos".
-
-Tipos de campo suportados:
-
-- Texto curto, texto longo, e-mail, número, telefone, seleção e caixa de seleção.
-- Campos de e-mail usam validação de formato.
-- Campos de número exigem valor numérico válido.
-- Campos de telefone exigem 12 dígitos numéricos no padrão brasileiro usado neste projeto: 3 dígitos de DDD e 9 dígitos de telefone.
-
-Criar formulário:
-
-```bash
-curl -i http://localhost:8080/api/forms \
-  --cookie "form_builder_session=<cookie-value>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Pesquisa de satisfação",
-    "description": "Formulário público para clientes",
-    "controllerEmail": "privacidade@example.com",
-    "privacyPurpose": "Coletar feedback para melhoria do atendimento.",
-    "retentionPolicy": "As respostas serão mantidas por até 90 dias após o envio.",
-    "fields": [
-      {
-        "type": "text",
-        "label": "Nome",
-        "required": true,
-        "placeholder": "Digite seu nome"
-      },
-      {
-        "type": "select",
-        "label": "Plano",
-        "required": true,
-        "options": ["Basic", "Pro", "Enterprise"]
-      }
-    ]
-  }'
+```powershell
+cd backend
+go run ./cmd/server run
 ```
 
-Publicar formulário:
-
-```bash
-curl -i -X POST http://localhost:8080/api/forms/<form-id>/publish \
-  --cookie "form_builder_session=<cookie-value>"
-```
-
-Consultar formulário publicado:
-
-```bash
-curl -i http://localhost:8080/api/public/forms/<public-slug>
-```
-
-Enviar resposta pública:
-
-```bash
-curl -i http://localhost:8080/api/public/forms/<public-slug>/responses \
-  -H "Content-Type: application/json" \
-  -d '{
-    "privacyAcknowledged": true,
-    "answers": {
-      "<field-id>": "Ada Lovelace"
-    }
-  }'
-```
-
-Listar respostas no admin:
-
-```bash
-curl -i http://localhost:8080/api/forms/<form-id>/responses \
-  --cookie "form_builder_session=<cookie-value>"
-```
-
-Exportar respostas:
-
-```bash
-curl -i http://localhost:8080/api/forms/<form-id>/responses/export \
-  --cookie "form_builder_session=<cookie-value>"
-```
-
-Excluir uma resposta:
-
-```bash
-curl -i -X DELETE http://localhost:8080/api/forms/<form-id>/responses/<response-id> \
-  --cookie "form_builder_session=<cookie-value>"
-```
-
-## Pacote mínimo LGPD
-
-O projeto inclui controles básicos para apoiar transparência e atendimento de direitos do titular, sem substituir revisão jurídica do controlador.
-
-- Página pública `/privacidade` com política de privacidade do sistema.
-- Formulário publicado exige e exibe e-mail do controlador, finalidade do tratamento e política de retenção.
-- Publicação bloqueada quando os metadados de privacidade obrigatórios não foram preenchidos.
-- Envio público exige `privacyAcknowledged: true` e grava `privacyAcknowledgedAt` na resposta.
-- Painel administrativo permite exportar respostas em JSON, PDF e Excel, além de excluir uma resposta específica.
-- Cookies usados hoje são essenciais: sessão HTTP-only e estado temporário do Google OAuth.
-
-## Frontend
-
-Instale as dependências e rode o frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-O frontend usa `http://localhost:8080` como API por padrão. Para mudar, copie `frontend/.env.example` para `frontend/.env` e ajuste `VITE_API_URL`.
-
-Guarda de arquitetura do frontend:
-
-```bash
-cd frontend
-npm run lint:architecture
-```
-
-Regra do projeto: componentes e páginas não devem misturar lógica com estética. Estilos MUI ficam em arquivos `*.styles.ts`; rotas e providers ficam em `src/app`; código por domínio fica em `src/features`; helpers sem UI ficam em `src/lib`.
-
-Depois do login, `/admin` exibe apenas a lista de formulários salvos. A área administrativa completa fica em `/admin/workspace` e consome a API real para criar, editar, configurar campos, publicar, despublicar e excluir formulários. A página pública `/f/:slug` carrega o formulário publicado por slug e envia respostas. A rota `/admin/forms/:formId/responses` lista as respostas recebidas.
-
-## Validação manual local
-
-Com PostgreSQL, backend e frontend rodando, valide o fluxo principal no navegador:
+Abra o frontend e clique em **Continuar com Google**:
 
 ```text
 http://localhost:5173
 ```
 
-Checklist:
+### Erros comuns no Google
 
-- Criar uma conta por e-mail e senha.
-- Entrar e conferir a lista de formulários salvos em `/admin`.
-- Acessar a área administrativa em `/admin/workspace`.
-- Criar um formulário.
-- Preencher e-mail do controlador, finalidade do tratamento e retenção das respostas.
-- Adicionar campos ao formulário, incluindo telefone para validar o padrão brasileiro.
-- Salvar o formulário.
-- Publicar o formulário.
-- Abrir o link público gerado em `/f/:slug`.
-- Confirmar ciência do aviso de privacidade.
-- Enviar uma resposta sem autenticação.
-- Voltar ao admin e abrir `/admin/forms/:formId/responses`.
-- Confirmar que a resposta enviada aparece na listagem.
-- Exportar respostas em JSON, PDF e Excel e excluir uma resposta de teste.
+`Erro 401: invalid_client`:
 
-Sinais esperados:
+- O `GOOGLE_CLIENT_ID` está errado, incompleto ou não termina em `.apps.googleusercontent.com`.
+- O `GOOGLE_CLIENT_SECRET` não pertence ao mesmo OAuth Client.
+- O OAuth Client não é do tipo **Web application**.
+- O backend não foi reiniciado depois da alteração no `.env`.
 
-- Backend respondendo em `http://localhost:8080/healthz`.
-- Readiness respondendo em `http://localhost:8080/readyz`.
-- Frontend servindo em `http://localhost:5173`.
-- Cookie HTTP-only `form_builder_session` criado após login.
+`redirect_uri_mismatch`:
 
-Se houver um PostgreSQL local usando a porta `5432`, pare esse serviço antes de subir o PostgreSQL do Docker ou altere a porta publicada no `docker-compose.yml` e ajuste `DATABASE_URL`.
+- A URL cadastrada em **Authorized redirect URIs** precisa ser exatamente `http://localhost:8080/api/auth/google/callback`.
+- Não coloque barra final extra.
+- Não troque `localhost` por `127.0.0.1` se o `.env` está usando `localhost`.
 
-## OpenAPI e client TypeScript
+Acesso bloqueado ou app não verificado:
 
-Sempre que uma rota, payload, schema ou status code da API mudar no backend, atualize primeiro a especificação OpenAPI gerada:
+- Confira a tela de consentimento.
+- Se estiver em modo de teste, adicione seu e-mail em **Test users**.
+- Alterações no Google Cloud podem levar alguns minutos para refletir.
 
-```bash
-make openapi
+Referências oficiais:
+
+- [Google OAuth 2.0 for Web Server Applications](https://developers.google.com/identity/protocols/oauth2/web-server)
+- [Google Cloud - Manage OAuth Clients](https://support.google.com/cloud/answer/15549257)
+
+## Como usar o sistema no navegador
+
+Com banco, backend e frontend rodando, abra:
+
+```text
+http://localhost:5173
 ```
 
-Esse comando executa o backend Go e regrava `backend/openapi/openapi.json`. Depois gere novamente os tipos TypeScript consumidos pelo frontend:
+### Criar conta por e-mail e senha
 
-```bash
+1. Na tela inicial, clique em **Criar conta**.
+2. Informe nome, e-mail e senha.
+3. Clique em **Criar**.
+4. Depois do login, você será enviado para a tela de **Formulários salvos**.
+
+### Entrar por e-mail e senha
+
+1. Na tela inicial, informe e-mail e senha.
+2. Clique em **Entrar**.
+3. Após o login, a aplicação abre a tela de **Formulários salvos**.
+
+### Entrar com Google
+
+1. Configure o Google OAuth no `.env`.
+2. Reinicie o backend.
+3. Abra `http://localhost:5173`.
+4. Clique em **Continuar com Google**.
+5. Escolha sua conta Google.
+6. Após o retorno do Google, a aplicação abre a tela de **Formulários salvos**.
+
+### Sessão e segurança de acesso
+
+A área administrativa só pode ser acessada depois do login.
+
+Por regra definida no projeto, se o usuário recarregar uma página protegida ou voltar para a tela de login, a aplicação encerra a sessão no backend e exige novo login. Isso impede que alguém avance para a área administrativa apenas pelo histórico do navegador.
+
+Use o botão **Sair** no cabeçalho para encerrar a sessão manualmente.
+
+## Fluxo completo do formulário
+
+### 1. Abrir formulários salvos
+
+Depois do login, a primeira tela protegida é:
+
+```text
+http://localhost:5173/admin
+```
+
+Essa tela mostra os formulários já criados.
+
+### 2. Acessar a área administrativa
+
+No menu, clique em **Administração**.
+
+Rota:
+
+```text
+http://localhost:5173/admin/workspace
+```
+
+Essa área permite criar, editar, configurar campos, salvar, publicar e despublicar formulários.
+
+### 3. Criar ou editar formulário
+
+Na área administrativa:
+
+1. Informe o título do formulário.
+2. Informe uma descrição, se quiser.
+3. Preencha o e-mail do controlador dos dados.
+4. Preencha a finalidade do tratamento dos dados.
+5. Preencha a política de retenção das respostas.
+6. Adicione os campos necessários.
+7. Configure tipo, nome, obrigatoriedade, placeholder e opções.
+8. Clique em **Salvar**.
+
+Os dados de privacidade são obrigatórios para publicar o formulário.
+
+### 4. Tipos de campo
+
+Tipos disponíveis:
+
+- Texto curto.
+- Texto longo.
+- E-mail.
+- Número.
+- Telefone.
+- Seleção.
+- Caixa de seleção.
+
+Regras de validação:
+
+- Campo obrigatório precisa ser preenchido.
+- E-mail precisa ter formato válido.
+- Número precisa ser numérico.
+- Telefone precisa ter 12 dígitos numéricos no padrão usado neste projeto: 3 dígitos de DDD e 9 dígitos de telefone.
+- Seleção precisa ter opções cadastradas.
+
+Para telefone, informe somente números. Exemplo:
+
+```text
+011912345678
+```
+
+### 5. Publicar formulário
+
+Depois de salvar e preencher os dados LGPD mínimos, clique em **Publicar**.
+
+A aplicação gera uma URL pública no formato:
+
+```text
+http://localhost:5173/f/slug-do-formulario
+```
+
+Qualquer pessoa com essa URL pode preencher o formulário sem login.
+
+### 6. Responder formulário público
+
+Abra a URL pública gerada.
+
+Na página pública:
+
+1. Leia o aviso de privacidade.
+2. Preencha os campos.
+3. Confirme a ciência do aviso LGPD.
+4. Envie a resposta.
+
+O backend valida os dados usando a definição do formulário publicado.
+
+### 7. Consultar respostas
+
+Entre como administrador, vá para **Formulários salvos** e abra as respostas do formulário.
+
+Rota:
+
+```text
+http://localhost:5173/admin/forms/:formId/responses
+```
+
+Na tela de respostas, o administrador pode:
+
+- Ver data de envio.
+- Ver ciência LGPD.
+- Ver respostas por campo.
+- Exportar JSON.
+- Exportar PDF.
+- Exportar Excel.
+- Excluir uma resposta específica.
+
+Se um campo for removido depois de já ter recebido respostas, os dados antigos aparecem em **Outros dados salvos** para não perder histórico.
+
+## Rotas principais do frontend
+
+- `/`: login e cadastro.
+- `/admin`: formulários salvos, somente após login.
+- `/admin/workspace`: área administrativa, somente após login.
+- `/admin/forms/:formId/responses`: respostas de um formulário, somente após login.
+- `/f/:slug`: formulário público publicado.
+- `/privacidade`: política de privacidade.
+
+## Rotas principais da API
+
+Autenticação:
+
+- `POST /api/auth/register`: cria conta.
+- `POST /api/auth/login`: entra por e-mail e senha.
+- `POST /api/auth/logout`: sai da sessão atual.
+- `GET /api/auth/me`: consulta usuário autenticado.
+- `GET /api/auth/google`: inicia login Google.
+- `GET /api/auth/google/callback`: recebe callback do Google.
+
+Formulários autenticados:
+
+- `GET /api/forms`: lista formulários do administrador.
+- `POST /api/forms`: cria formulário.
+- `GET /api/forms/{formId}`: consulta formulário.
+- `PUT /api/forms/{formId}`: atualiza formulário.
+- `DELETE /api/forms/{formId}`: remove formulário.
+- `POST /api/forms/{formId}/publish`: publica formulário.
+- `POST /api/forms/{formId}/unpublish`: despublica formulário.
+
+Formulários públicos:
+
+- `GET /api/public/forms/{slug}`: carrega formulário publicado.
+- `POST /api/public/forms/{slug}/responses`: envia resposta pública.
+
+Respostas autenticadas:
+
+- `GET /api/forms/{formId}/responses`: lista respostas.
+- `GET /api/forms/{formId}/responses/export`: exporta respostas em JSON.
+- `DELETE /api/forms/{formId}/responses/{responseId}`: exclui resposta.
+
+## LGPD mínima implementada
+
+O projeto possui um pacote mínimo de apoio à LGPD. Ele não substitui revisão jurídica, mas atende ao fluxo básico pedido no teste.
+
+- Página `/privacidade` com política de privacidade.
+- Aviso de privacidade no formulário público.
+- Campo de e-mail do controlador por formulário.
+- Campo de finalidade do tratamento por formulário.
+- Campo de retenção das respostas por formulário.
+- Bloqueio de publicação quando os dados de privacidade obrigatórios estão vazios.
+- Confirmação de ciência LGPD no envio público.
+- Registro de `privacyAcknowledgedAt` na resposta.
+- Exportação administrativa das respostas.
+- Exclusão administrativa de respostas.
+- Cookies usados apenas para sessão HTTP-only e estado temporário do Google OAuth.
+
+## OpenAPI e client TypeScript gerado
+
+O backend é a fonte do contrato da API. Sempre que mudar rota, payload, schema ou status code, atualize o OpenAPI e gere o client TypeScript.
+
+Com GNU Make:
+
+```powershell
+make openapi
 make client
 ```
 
-Esse comando roda `npm run generate:api` dentro de `frontend` e atualiza `frontend/src/api/generated/schema.ts` e `frontend/src/api/generated/client.ts` a partir de `backend/openapi/openapi.json`.
+Ou em um único fluxo:
 
-Fluxo obrigatório para mudanças de contrato:
-
-```bash
+```powershell
 make openapi && make client
 ```
 
-Em ambientes sem GNU Make, rode os comandos equivalentes:
+Sem GNU Make, no PowerShell:
 
-```bash
+```powershell
 cd backend
-go run ./cmd/server openapi > ./openapi/openapi.json
-cd ../frontend
+go run ./cmd/server openapi | Set-Content -Encoding utf8 .\openapi\openapi.json
+cd ..\frontend
 npm run generate:api
 ```
 
-Arquivos gerados ficam em `frontend/src/api/generated`, são versionados para revisão e não devem ser editados manualmente. O build do frontend também executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formulários e respostas são aliases derivados de `frontend/src/api/generated/schema.ts`, e as páginas/features consomem a API por meio das funções geradas em `frontend/src/api/generated/client.ts`.
+Arquivos gerados:
 
-## Decisões iniciais
+- `backend/openapi/openapi.json`
+- `frontend/src/api/generated/schema.ts`
+- `frontend/src/api/generated/client.ts`
 
-- Monorepo para simplificar setup local, revisão e DX.
-- PostgreSQL por ser multiplataforma, robusto e adequado para persistência relacional. O Docker Compose existe apenas como conveniência para desenvolvimento local.
-- Vite em vez de Next.js para deixar claro que o backend Go é responsável pela API, regras de negócio e persistência.
-- Frontend organizado por `app`, `features`, `styles`, `lib` e `api`, mantendo estilos fora dos componentes e lógica fora da camada visual.
-- Formulários, campos e respostas serão modelados em tabelas relacionais, com `jsonb` para configurações e respostas flexíveis.
-- Sessões em banco com token opaco em cookie HTTP-only. O banco armazena apenas o hash HMAC do token, reduzindo impacto se os dados de sessão vazarem.
-- Migrations embutidas no binário Go para manter o setup local reproduzível sem depender de uma CLI externa.
+Os arquivos em `frontend/src/api/generated` são versionados para revisão, mas não devem ser editados manualmente.
 
-## Status
+## Testes e validações
 
-Já existe a base real do backend com conexão PostgreSQL, migrations executáveis, modelo de usuários/sessões, autenticação por e-mail/senha, autenticação com Google, CRUD autenticado de formulários com publicação, envio/listagem de respostas e frontend conectado aos fluxos principais.
+Backend:
+
+```powershell
+cd backend
+go test ./...
+```
+
+Frontend:
+
+```powershell
+cd frontend
+npm run lint:architecture
+npm run build
+```
+
+O build do frontend executa `npm run generate:api` antes do typecheck.
+
+## Regra de organização do frontend
+
+O projeto deve separar lógica de estética.
+
+- Páginas e componentes ficam dentro de `frontend/src/features`.
+- Estilos MUI ficam em arquivos `*.styles.ts`.
+- Rotas e providers ficam em `frontend/src/app`.
+- Código de API fica em `frontend/src/api`.
+- Helpers sem UI ficam em `frontend/src/lib`.
+- Tipos de auth, forms e responses devem vir do OpenAPI gerado.
+- Wrappers e chamadas HTTP devem respeitar o client gerado.
+
+Para checar essa regra:
+
+```powershell
+cd frontend
+npm run lint:architecture
+```
+
+## Comandos úteis com Make
+
+Se você tiver GNU Make instalado, pode usar estes atalhos na raiz do projeto:
+
+```powershell
+make db-up
+make migrate-up
+make backend-dev
+make frontend-dev
+make openapi
+make client
+```
+
+O que cada comando faz:
+
+- `make db-up`: sobe o PostgreSQL via Docker Compose.
+- `make db-down`: derruba o PostgreSQL do Docker Compose.
+- `make migrate-up`: aplica migrations.
+- `make migrate-down`: desfaz a última migration aplicada.
+- `make backend-dev`: roda o backend.
+- `make frontend-dev`: roda o frontend.
+- `make openapi`: gera `backend/openapi/openapi.json`.
+- `make client`: gera o client TypeScript do frontend.
+
+## Como parar o sistema
+
+Para parar backend e frontend, pressione `Ctrl+C` nos terminais onde eles estão rodando.
+
+Para parar o PostgreSQL do Docker:
+
+```powershell
+docker compose down
+```
+
+Se quiser apagar também os dados do banco criado pelo Docker:
+
+```powershell
+docker compose down -v
+```
+
+Use `docker compose down -v` com cuidado, porque ele remove o volume do PostgreSQL e apaga os dados locais.
+
+## Problemas comuns
+
+`Failed to fetch` no frontend:
+
+- Confirme que o backend está rodando em `http://localhost:8080`.
+- Abra `http://localhost:8080/healthz`.
+- Confira se `frontend/.env`, caso exista, usa `VITE_API_URL=http://localhost:8080`.
+- Confira se `FRONTEND_URL=http://localhost:5173` no `.env` da raiz.
+
+Erro de senha do PostgreSQL:
+
+- Confirme se o backend está conectando no banco certo.
+- Se usar Docker, o usuário e senha padrão são `form_builder`.
+- Se houver PostgreSQL local na porta `5432`, ele pode estar recebendo a conexão no lugar do container Docker.
+- Ajuste `DATABASE_URL` ou pare o serviço local conflitante.
+
+`go: command not found` ou `go não é reconhecido`:
+
+- Instale Go 1.25+.
+- Feche e abra o terminal depois da instalação.
+- Rode `go version` para confirmar.
+
+Erro em `npm install`:
+
+- Confirme Node.js 20+ com `node -v`.
+- Confirme npm com `npm -v`.
+- Verifique sua conexão com a internet.
+
+Backend não carrega mudança no `.env`:
+
+- Pare o backend com `Ctrl+C`.
+- Inicie novamente com `go run ./cmd/server run`.
+
+Google OAuth não funciona:
+
+- Confira `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `GOOGLE_REDIRECT_URL`.
+- Confirme que as URLs cadastradas no Google Cloud são exatamente as mesmas do README.
+- Reinicie o backend após editar o `.env`.
+- Aguarde alguns minutos caso tenha acabado de criar ou alterar o OAuth Client.
+
+## Checklist para saber se tudo está funcionando
+
+- `docker compose up -d postgres` rodou sem erro, se você escolheu Docker.
+- `go run ./cmd/server migrate up` terminou com sucesso.
+- Backend mostra `server listening on http://localhost:8080`.
+- `http://localhost:8080/healthz` abre no navegador.
+- `http://localhost:8080/readyz` abre no navegador.
+- Frontend mostra `Local: http://localhost:5173/`.
+- `http://localhost:5173` abre a tela de login.
+- Cadastro por e-mail e senha funciona.
+- Login por Google funciona depois de configurar OAuth.
+- Após login, a primeira tela é **Formulários salvos**.
+- A área administrativa aparece apenas para usuário logado.
+- Um formulário pode ser criado, salvo e publicado.
+- A URL pública `/f/:slug` abre sem login.
+- Resposta pública é salva no banco.
+- Respostas aparecem para o administrador.
+- Exportação JSON, PDF e Excel funciona.
+- Botão **Sair** encerra a sessão e volta para login.
+- Recarregar página protegida exige login novamente.
+
+## Status atual
+
+O projeto já possui a base real exigida para o fluxo principal:
+
+- Backend Go independente.
+- PostgreSQL com migrations.
+- Usuários e sessões.
+- Login por e-mail/senha.
+- Login com Google OAuth.
+- CRUD autenticado de formulários.
+- Campos configuráveis.
+- Publicação de formulário com URL pública.
+- Envio público de respostas.
+- Listagem e exportação de respostas.
+- Pacote mínimo LGPD.
+- OpenAPI 3 e client TypeScript gerado.
