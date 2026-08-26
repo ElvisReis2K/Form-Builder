@@ -11,6 +11,7 @@ import {
   ListItemText,
   MenuItem,
   Paper,
+  Snackbar,
   Stack,
   Switch,
   TextField,
@@ -53,6 +54,7 @@ export default function AdminHomePage() {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(true);
   const [draft, setDraft] = useState<FormDraft>(() => createBlankDraft());
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
 
   const formsQuery = useQuery({
     queryKey: formsQueryKey,
@@ -143,6 +145,7 @@ export default function AdminHomePage() {
     unpublishMutation.isPending ||
     deleteMutation.isPending;
   const selectedStatus = selectedForm?.status ?? 'draft';
+  const selectedPublicUrl = selectedForm?.publicUrl ?? null;
   const hasSavedForm = draft.id !== null;
   const hasPrivacyNotice =
     draft.controllerEmail.trim() !== '' && draft.privacyPurpose.trim() !== '' && draft.retentionPolicy.trim() !== '';
@@ -185,6 +188,17 @@ export default function AdminHomePage() {
   function deleteSelectedForm() {
     if (draft.id !== null && window.confirm('Excluir este formulário?')) {
       deleteMutation.mutate(draft.id);
+    }
+  }
+
+  async function sharePublicForm(publicUrl: string) {
+    const shareUrl = toAbsolutePublicURL(publicUrl);
+
+    try {
+      await copyToClipboard(shareUrl);
+      setShareMessage('Link público copiado.');
+    } catch {
+      setShareMessage('Não foi possível copiar o link.');
     }
   }
 
@@ -418,9 +432,14 @@ export default function AdminHomePage() {
                   Publicar
                 </Button>
               )}
-              {selectedForm?.publicUrl ? (
-                <Button component={RouterLink} to={selectedForm.publicUrl} variant="text">
+              {selectedPublicUrl ? (
+                <Button component={RouterLink} to={selectedPublicUrl} variant="text">
                   Abrir formulário público
+                </Button>
+              ) : null}
+              {selectedPublicUrl ? (
+                <Button type="button" variant="text" onClick={() => void sharePublicForm(selectedPublicUrl)}>
+                  Compartilhar
                 </Button>
               ) : null}
               {hasSavedForm ? (
@@ -435,10 +454,43 @@ export default function AdminHomePage() {
           </Stack>
         </Paper>
       </Box>
+
+      <Snackbar
+        open={shareMessage !== null}
+        autoHideDuration={2800}
+        onClose={() => setShareMessage(null)}
+        message={shareMessage}
+      />
     </Stack>
   );
 }
 
 function formatFieldCount(count: number) {
   return `${count} ${count === 1 ? 'campo' : 'campos'}`;
+}
+
+function toAbsolutePublicURL(publicUrl: string) {
+  return new URL(publicUrl, window.location.origin).toString();
+}
+
+async function copyToClipboard(value: string) {
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textArea = document.createElement('textarea');
+  textArea.value = value;
+  textArea.setAttribute('readonly', 'true');
+  textArea.style.position = 'fixed';
+  textArea.style.top = '-1000px';
+  document.body.appendChild(textArea);
+  textArea.select();
+
+  const copied = document.execCommand('copy');
+  document.body.removeChild(textArea);
+
+  if (!copied) {
+    throw new Error('copy failed');
+  }
 }
