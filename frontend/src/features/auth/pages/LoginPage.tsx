@@ -54,7 +54,7 @@ export default function LoginPage() {
     <Paper sx={loginPageStyles.panel}>
       <Stack component="form" onSubmit={handleSubmit} sx={loginPageStyles.form}>
         <Stack sx={loginPageStyles.header}>
-          <Typography variant="h5">{mode === 'login' ? 'Entrar na administracao' : 'Criar conta'}</Typography>
+          <Typography variant="h5">{mode === 'login' ? 'Faça Login ou Cadastre-se' : 'Criar conta'}</Typography>
           <Typography color="text.secondary">Construtor de Formularios</Typography>
         </Stack>
 

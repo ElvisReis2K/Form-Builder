@@ -29,14 +29,20 @@ export const loginPageStyles = {
       sm: 'row',
     },
     gap: 1,
-    alignItems: {
-      xs: 'stretch',
-      sm: 'center',
-    },
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionButton: {
     minWidth: {
       sm: 132,
+    },
+    width: {
+      xs: '100%',
+      sm: 132,
+    },
+    maxWidth: {
+      xs: 220,
+      sm: 'none',
     },
   },
   googleButton: {
