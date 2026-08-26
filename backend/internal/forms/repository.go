@@ -216,7 +216,15 @@ func (repo *Repository) Unpublish(ctx context.Context, ownerID string, formID st
 }
 
 func (repo *Repository) ListFields(ctx context.Context, formID string) ([]Field, error) {
-	rows, err := repo.db.Query(ctx, `
+	return listFields(ctx, repo.db, formID)
+}
+
+type fieldQuerier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
+
+func listFields(ctx context.Context, querier fieldQuerier, formID string) ([]Field, error) {
+	rows, err := querier.Query(ctx, `
 		SELECT id::text, form_id::text, position, type, label, required, placeholder, options, config, created_at, updated_at
 		FROM form_fields
 		WHERE form_id = $1
@@ -243,6 +251,12 @@ func insertForm(ctx context.Context, tx pgx.Tx, ownerID string, input FormInput)
 }
 
 func replaceFields(ctx context.Context, tx pgx.Tx, formID string, fields []FieldInput) ([]Field, error) {
+	existingFields, err := listFields(ctx, tx, formID)
+	if err != nil {
+		return nil, err
+	}
+	fields = preserveExistingFieldIDs(fields, existingFields)
+
 	if _, err := tx.Exec(ctx, "DELETE FROM form_fields WHERE form_id = $1", formID); err != nil {
 		return nil, fmt.Errorf("delete existing fields: %w", err)
 	}
@@ -260,7 +274,52 @@ func replaceFields(ctx context.Context, tx pgx.Tx, formID string, fields []Field
 	return result, nil
 }
 
+func preserveExistingFieldIDs(fields []FieldInput, existingFields []Field) []FieldInput {
+	existingByID := make(map[string]Field, len(existingFields))
+	existingByPosition := make(map[int]Field, len(existingFields))
+	for _, field := range existingFields {
+		existingByID[field.ID] = field
+		existingByPosition[field.Position] = field
+	}
+
+	usedIDs := make(map[string]bool, len(fields))
+	result := make([]FieldInput, 0, len(fields))
+	for index, field := range fields {
+		next := field
+		next.ID = nil
+
+		if field.ID != nil {
+			if existingField, ok := existingByID[*field.ID]; ok && !usedIDs[existingField.ID] {
+				id := existingField.ID
+				next.ID = &id
+				usedIDs[id] = true
+				result = append(result, next)
+				continue
+			}
+		}
+
+		if existingField, ok := existingByPosition[index]; ok && sameFieldIdentity(existingField, field) && !usedIDs[existingField.ID] {
+			id := existingField.ID
+			next.ID = &id
+			usedIDs[id] = true
+		}
+
+		result = append(result, next)
+	}
+
+	return result
+}
+
+func sameFieldIdentity(existing Field, input FieldInput) bool {
+	return existing.Type == input.Type && existing.Label == input.Label
+}
+
 func insertField(ctx context.Context, tx pgx.Tx, formID string, position int, field FieldInput) (Field, error) {
+	var fieldID any
+	if field.ID != nil {
+		fieldID = *field.ID
+	}
+
 	optionsJSON, err := json.Marshal(field.Options)
 	if err != nil {
 		return Field{}, fmt.Errorf("marshal field options: %w", err)
@@ -272,10 +331,10 @@ func insertField(ctx context.Context, tx pgx.Tx, formID string, position int, fi
 	}
 
 	return scanField(tx.QueryRow(ctx, `
-		INSERT INTO form_fields (form_id, position, type, label, required, placeholder, options, config)
-		VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb)
+		INSERT INTO form_fields (id, form_id, position, type, label, required, placeholder, options, config)
+		VALUES (COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb)
 		RETURNING id::text, form_id::text, position, type, label, required, placeholder, options, config, created_at, updated_at
-	`, formID, position, field.Type, field.Label, field.Required, field.Placeholder, string(optionsJSON), string(configJSON)))
+	`, fieldID, formID, position, field.Type, field.Label, field.Required, field.Placeholder, string(optionsJSON), string(configJSON)))
 }
 
 func scanFormRows(rows pgx.Rows) ([]Form, error) {

@@ -23,11 +23,14 @@ import {
 } from '../../../api/generated/client';
 import { responsesPageStyles } from '../styles/responsesPage.styles';
 import {
+  createKnownFieldIds,
   downloadResponsesExcel,
   downloadResponsesJSON,
   downloadResponsesPDF,
   formatAnswer,
   formatDate,
+  formatUnknownAnswers,
+  hasUnknownAnswers,
 } from '../utils/responseExports';
 
 export default function FormResponsesPage() {
@@ -45,6 +48,8 @@ export default function FormResponsesPage() {
 
   const form = responsesQuery.data?.form;
   const responses = responsesQuery.data?.responses ?? [];
+  const knownFieldIds = form ? createKnownFieldIds(form) : new Set<string>();
+  const shouldShowUnknownAnswers = responses.some((response) => hasUnknownAnswers(response, knownFieldIds));
   const exportMutation = useMutation({
     mutationFn: () =>
       getApiFormsFormIdResponsesExport({
@@ -112,6 +117,7 @@ export default function FormResponsesPage() {
                   {form.fields.map((field) => (
                     <TableCell key={field.id}>{field.label}</TableCell>
                   ))}
+                  {shouldShowUnknownAnswers ? <TableCell>Outros dados salvos</TableCell> : null}
                   <TableCell>Ações</TableCell>
                 </TableRow>
               </TableHead>
@@ -123,6 +129,9 @@ export default function FormResponsesPage() {
                     {form.fields.map((field) => (
                       <TableCell key={field.id}>{formatAnswer(response, field.id)}</TableCell>
                     ))}
+                    {shouldShowUnknownAnswers ? (
+                      <TableCell>{formatUnknownAnswers(response, knownFieldIds)}</TableCell>
+                    ) : null}
                     <TableCell>
                       <Button
                         variant="text"

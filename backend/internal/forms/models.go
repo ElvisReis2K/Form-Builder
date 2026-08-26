@@ -61,6 +61,7 @@ type FormInput struct {
 }
 
 type FieldInput struct {
+	ID          *string
 	Type        FieldType
 	Label       string
 	Required    bool

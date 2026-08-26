@@ -71,6 +71,46 @@ func TestNormalizeFormInputRequiresSelectOptions(t *testing.T) {
 	}
 }
 
+func TestNormalizeFormInputNormalizesFieldID(t *testing.T) {
+	fieldID := " 11111111-1111-4111-8111-111111111111 "
+
+	input, err := normalizeFormInput(FormInput{
+		Title: "Feedback form",
+		Fields: []FieldInput{
+			{
+				ID:    &fieldID,
+				Type:  FieldTypeText,
+				Label: "Name",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("normalize form input: %v", err)
+	}
+
+	if input.Fields[0].ID == nil || *input.Fields[0].ID != "11111111-1111-4111-8111-111111111111" {
+		t.Fatalf("expected field id to be normalized, got %#v", input.Fields[0].ID)
+	}
+}
+
+func TestNormalizeFormInputRejectsInvalidFieldID(t *testing.T) {
+	fieldID := "not-a-uuid"
+
+	_, err := normalizeFormInput(FormInput{
+		Title: "Feedback form",
+		Fields: []FieldInput{
+			{
+				ID:    &fieldID,
+				Type:  FieldTypeText,
+				Label: "Name",
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+}
+
 func TestNormalizeFormInputRejectsInvalidControllerEmail(t *testing.T) {
 	controllerEmail := "not-an-email"
 

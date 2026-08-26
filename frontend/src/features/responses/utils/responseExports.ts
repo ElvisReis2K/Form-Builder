@@ -12,11 +12,19 @@ export function downloadResponsesJSON(payload: FormSubmissionExportResponse) {
 }
 
 export function downloadResponsesExcel(form: FormResponseSummary, responses: FormSubmission[]) {
-  const headers = ['Enviada em', 'Ciência LGPD', ...form.fields.map((field) => field.label)];
+  const knownFieldIds = createKnownFieldIds(form);
+  const includeUnknownAnswers = responses.some((response) => hasUnknownAnswers(response, knownFieldIds));
+  const headers = [
+    'Enviada em',
+    'Ciência LGPD',
+    ...form.fields.map((field) => field.label),
+    ...(includeUnknownAnswers ? ['Outros dados salvos'] : []),
+  ];
   const rows = responses.map((response) => [
     formatDate(response.submittedAt),
     formatDate(response.privacyAcknowledgedAt),
     ...form.fields.map((field) => formatAnswer(response, field.id)),
+    ...(includeUnknownAnswers ? [formatUnknownAnswers(response, knownFieldIds)] : []),
   ]);
   const table = [headers, ...rows]
     .map((row) => `<tr>${row.map((cell) => `<td>${escapeHTML(cell)}</td>`).join('')}</tr>`)
@@ -27,6 +35,8 @@ export function downloadResponsesExcel(form: FormResponseSummary, responses: For
 }
 
 export function downloadResponsesPDF(form: FormResponseSummary, responses: FormSubmission[]) {
+  const knownFieldIds = createKnownFieldIds(form);
+  const includeUnknownAnswers = responses.some((response) => hasUnknownAnswers(response, knownFieldIds));
   const lines = [
     `Respostas - ${form.title}`,
     `Exportado em: ${formatDate(new Date().toISOString())}`,
@@ -36,6 +46,7 @@ export function downloadResponsesPDF(form: FormResponseSummary, responses: FormS
       `Enviada em: ${formatDate(response.submittedAt)}`,
       `Ciência LGPD: ${formatDate(response.privacyAcknowledgedAt)}`,
       ...form.fields.map((field) => `${field.label}: ${formatAnswer(response, field.id)}`),
+      ...(includeUnknownAnswers ? [`Outros dados salvos: ${formatUnknownAnswers(response, knownFieldIds)}`] : []),
       '',
     ]),
   ];
@@ -46,6 +57,27 @@ export function downloadResponsesPDF(form: FormResponseSummary, responses: FormS
 
 export function formatAnswer(response: FormSubmission, fieldId: string) {
   const value = response.answers[fieldId];
+  return formatAnswerValue(value);
+}
+
+export function hasUnknownAnswers(response: FormSubmission, knownFieldIds: Set<string>) {
+  return unknownAnswerEntries(response, knownFieldIds).length > 0;
+}
+
+export function formatUnknownAnswers(response: FormSubmission, knownFieldIds: Set<string>) {
+  const entries = unknownAnswerEntries(response, knownFieldIds);
+  if (entries.length === 0) {
+    return '-';
+  }
+
+  return entries.map(([, value], index) => `Campo removido ${index + 1}: ${formatAnswerValue(value)}`).join('; ');
+}
+
+export function createKnownFieldIds(form: FormResponseSummary) {
+  return new Set(form.fields.map((field) => field.id));
+}
+
+function formatAnswerValue(value: unknown) {
   if (value === undefined || value === null || value === '') {
     return '-';
   }
@@ -55,6 +87,12 @@ export function formatAnswer(response: FormSubmission, fieldId: string) {
   }
 
   return String(value);
+}
+
+function unknownAnswerEntries(response: FormSubmission, knownFieldIds: Set<string>) {
+  return Object.entries(response.answers).filter(
+    ([fieldId, value]) => !knownFieldIds.has(fieldId) && formatAnswerValue(value) !== '-',
+  );
 }
 
 export function formatDate(value: string) {

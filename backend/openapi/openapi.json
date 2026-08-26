@@ -165,6 +165,10 @@
             "additionalProperties": true,
             "type": "object"
           },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
           "label": {
             "maxLength": 160,
             "minLength": 1,

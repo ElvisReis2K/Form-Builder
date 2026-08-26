@@ -24,6 +24,7 @@ type formRequest struct {
 }
 
 type fieldRequest struct {
+	ID          *string        `json:"id"`
 	Type        FieldType      `json:"type"`
 	Label       string         `json:"label"`
 	Required    bool           `json:"required"`
@@ -237,6 +238,7 @@ func (request formRequest) toInput() FormInput {
 	fields := make([]FieldInput, 0, len(request.Fields))
 	for _, field := range request.Fields {
 		fields = append(fields, FieldInput{
+			ID:          field.ID,
 			Type:        field.Type,
 			Label:       field.Label,
 			Required:    field.Required,

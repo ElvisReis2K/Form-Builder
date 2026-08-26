@@ -426,6 +426,10 @@ func spec() map[string]any {
 					"fields":          arraySchema(refSchema("#/components/schemas/FormFieldInput")),
 				}),
 				"FormFieldInput": objectSchema([]string{"type", "label"}, map[string]any{
+					"id": map[string]any{
+						"type":   "string",
+						"format": "uuid",
+					},
 					"type": fieldTypeSchema(),
 					"label": map[string]any{
 						"type":      "string",

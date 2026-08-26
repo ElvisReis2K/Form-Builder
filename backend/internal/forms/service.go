@@ -210,6 +210,11 @@ func validatePrivacyNotice(controllerEmail *string, privacyPurpose *string, rete
 }
 
 func normalizeFieldInput(input FieldInput) (FieldInput, error) {
+	id, err := normalizeOptionalID(input.ID, "id do campo inválido")
+	if err != nil {
+		return FieldInput{}, err
+	}
+
 	if !allowedFieldType(input.Type) {
 		return FieldInput{}, ValidationError{Message: "tipo de campo inválido"}
 	}
@@ -238,6 +243,7 @@ func normalizeFieldInput(input FieldInput) (FieldInput, error) {
 	}
 
 	return FieldInput{
+		ID:          id,
 		Type:        input.Type,
 		Label:       label,
 		Required:    input.Required,
@@ -254,6 +260,22 @@ func allowedFieldType(fieldType FieldType) bool {
 	default:
 		return false
 	}
+}
+
+func normalizeOptionalID(value *string, message string) (*string, error) {
+	if value == nil {
+		return nil, nil
+	}
+
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil, nil
+	}
+	if !uuidPattern.MatchString(trimmed) {
+		return nil, ValidationError{Message: message}
+	}
+
+	return &trimmed, nil
 }
 
 func normalizeOptionalString(value *string) *string {

@@ -198,6 +198,8 @@ Respostas:
 
 O frontend também permite exportar a listagem de respostas em PDF e Excel a partir do painel administrativo.
 
+Ao editar um formulário, os IDs dos campos existentes são preservados para manter as respostas já enviadas associadas às colunas corretas. Caso existam respostas antigas gravadas com campos que já foram removidos, a tela e as exportações exibem esses valores em "Outros dados salvos".
+
 Tipos de campo suportados:
 
 - Texto curto, texto longo, e-mail, número, telefone, seleção e caixa de seleção.

@@ -1101,6 +1101,8 @@ export interface components {
             config?: {
                 [key: string]: unknown;
             };
+            /** Format: uuid */
+            id?: string;
             label: string;
             options?: string[];
             placeholder?: string | null;

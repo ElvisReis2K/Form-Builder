@@ -13,6 +13,7 @@ export const fieldTypeLabels: Record<FieldType, string> = {
 };
 
 export type FieldDraft = {
+  id: string | null;
   clientId: string;
   type: FieldType;
   label: string;
@@ -49,6 +50,7 @@ export function createFieldDraft(field?: Partial<FormField>): FieldDraft {
   draftSequence += 1;
 
   return {
+    id: field?.id ?? null,
     clientId: field?.id ?? `new-field-${Date.now()}-${draftSequence}`,
     type: field?.type ?? 'text',
     label: field?.label ?? '',
@@ -78,6 +80,7 @@ export function draftToRequest(draft: FormDraft): FormRequest {
     privacyPurpose: optionalText(draft.privacyPurpose),
     retentionPolicy: optionalText(draft.retentionPolicy),
     fields: draft.fields.map((field) => ({
+      id: field.id ?? undefined,
       type: field.type,
       label: field.label,
       required: field.required,
