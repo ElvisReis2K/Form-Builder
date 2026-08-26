@@ -4,6 +4,7 @@ export const guestNavItems = [
 ] as const;
 
 export const authenticatedNavItems = [
-  { label: 'Administração', to: '/admin' },
+  { label: 'Formulários', to: '/admin' },
+  { label: 'Administração', to: '/admin/workspace' },
   { label: 'Privacidade', to: '/privacidade' },
 ] as const;

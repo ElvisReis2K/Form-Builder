@@ -304,7 +304,7 @@ npm run lint:architecture
 
 Regra do projeto: componentes e paginas nao devem misturar logica com estetica. Estilos MUI ficam em arquivos `*.styles.ts`; rotas e providers ficam em `src/app`; codigo por dominio fica em `src/features`; helpers sem UI ficam em `src/lib`.
 
-O admin em `/admin` consome a API real para listar, criar, editar, publicar, despublicar e excluir formularios. A pagina publica `/f/:slug` carrega o formulario publicado por slug e envia respostas. A rota `/admin/forms/:formId/responses` lista as respostas recebidas.
+Depois do login, `/admin` exibe apenas a lista de formularios salvos. A area administrativa completa fica em `/admin/workspace` e consome a API real para criar, editar, configurar campos, publicar, despublicar e excluir formularios. A pagina publica `/f/:slug` carrega o formulario publicado por slug e envia respostas. A rota `/admin/forms/:formId/responses` lista as respostas recebidas.
 
 ## Validacao manual local
 
@@ -317,7 +317,8 @@ http://localhost:5173
 Checklist:
 
 - Criar uma conta por e-mail e senha.
-- Entrar no admin em `/admin`.
+- Entrar e conferir a lista de formularios salvos em `/admin`.
+- Acessar a area administrativa em `/admin/workspace`.
 - Criar um formulario.
 - Preencher e-mail do controlador, finalidade do tratamento e retencao das respostas.
 - Adicionar campos ao formulario.

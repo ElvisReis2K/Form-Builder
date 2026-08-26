@@ -29,6 +29,7 @@ import {
   postApiFormsFormIdUnpublish,
   putApiFormsFormId,
 } from '../../../api/generated/client';
+import { formsQueryKey } from '../queryKeys';
 import { formPagesStyles } from '../styles/formPages.styles';
 import type { FieldType, FormStatus } from '../types';
 import {
@@ -42,7 +43,6 @@ import {
   type FormDraft,
 } from '../utils/formDraft';
 
-const formsQueryKey = ['forms'];
 const statusLabels: Record<FormStatus, string> = {
   draft: 'Rascunho',
   published: 'Publicado',

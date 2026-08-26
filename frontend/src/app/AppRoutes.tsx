@@ -4,6 +4,7 @@ import RequireAuth from '../features/auth/components/RequireAuth';
 import LoginPage from '../features/auth/pages/LoginPage';
 import AdminHomePage from '../features/forms/pages/AdminHomePage';
 import PublicFormPage from '../features/forms/pages/PublicFormPage';
+import SavedFormsPage from '../features/forms/pages/SavedFormsPage';
 import PrivacyPolicyPage from '../features/privacy/pages/PrivacyPolicyPage';
 import FormResponsesPage from '../features/responses/pages/FormResponsesPage';
 
@@ -13,6 +14,14 @@ export default function AppRoutes() {
       <Route path="/" element={<LoginPage />} />
       <Route
         path="/admin"
+        element={
+          <RequireAuth>
+            <SavedFormsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/workspace"
         element={
           <RequireAuth>
             <AdminHomePage />

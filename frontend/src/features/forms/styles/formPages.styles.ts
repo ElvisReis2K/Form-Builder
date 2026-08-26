@@ -24,6 +24,36 @@ export const formPagesStyles = {
     gap: 0.75,
     minWidth: 0,
   },
+  savedFormsPanel: {
+    overflow: 'hidden',
+    bgcolor: 'rgba(255, 255, 255, 0.92)',
+  },
+  savedFormsList: {
+    p: 1.25,
+  },
+  savedFormItem: {
+    gap: 1.5,
+    border: 1,
+    borderColor: 'transparent',
+    py: 1.25,
+    transition: 'background-color 170ms ease, border-color 170ms ease, transform 170ms ease',
+    '&:not(:last-of-type)': {
+      mb: 0.85,
+    },
+    '&:hover': {
+      borderColor: 'divider',
+      bgcolor: 'rgba(255, 255, 255, 0.72)',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+    },
+  },
+  savedFormMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 1,
+    alignItems: 'center',
+  },
   workspace: {
     display: 'grid',
     gridTemplateColumns: {
