@@ -160,6 +160,12 @@ No Google Cloud, crie um OAuth Client do tipo Web application e configure o redi
 http://localhost:8080/api/auth/google/callback
 ```
 
+Use também a origem autorizada do frontend local:
+
+```text
+http://localhost:5173
+```
+
 Depois preencha no `.env`:
 
 ```bash
@@ -167,6 +173,8 @@ GOOGLE_CLIENT_ID=<client-id>
 GOOGLE_CLIENT_SECRET=<client-secret>
 GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
 ```
+
+Sem `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`, o botão "Continuar com Google" não consegue concluir o login porque o backend não tem credenciais para iniciar o OAuth.
 
 Rotas:
 

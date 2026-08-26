@@ -47,6 +47,11 @@ export const loginPageStyles = {
   },
   googleButton: {
     mt: 0.25,
+    fontWeight: 700,
+    '& .MuiButton-startIcon': {
+      ml: 0,
+      mr: 1,
+    },
   },
   privacyText: {
     textAlign: 'center',

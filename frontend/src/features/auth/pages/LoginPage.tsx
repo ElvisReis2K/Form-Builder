@@ -5,6 +5,7 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 
 import { apiURL, getErrorMessage, postApiAuthLogin, postApiAuthRegister } from '../../../api/generated/client';
 
+import GoogleIcon from '../components/GoogleIcon';
 import { allowGoogleOAuthReturn, completeAuthentication, endAuthenticatedSession } from '../session';
 import { loginPageStyles } from '../styles/loginPage.styles';
 
@@ -133,6 +134,7 @@ export default function LoginPage() {
         <Button
           type="button"
           variant="outlined"
+          startIcon={<GoogleIcon />}
           onClick={startGoogleLogin}
           disabled={isSessionResetting}
           sx={loginPageStyles.googleButton}
