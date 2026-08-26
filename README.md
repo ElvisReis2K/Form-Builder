@@ -154,37 +154,114 @@ curl -i http://localhost:8080/api/auth/me \
 
 O login com Google usa OAuth 2.0 Authorization Code no backend Go. O frontend apenas redireciona para `GET /api/auth/google`; o callback valida `state`, consulta o perfil no Google e cria a mesma sessão HTTP-only usada pelo login por e-mail/senha.
 
-No Google Cloud, crie um OAuth Client do tipo Web application e configure o redirect URI:
+### Como configurar o login Google localmente
 
-```text
-http://localhost:8080/api/auth/google/callback
-```
+O login com Google depende de credenciais OAuth do Google Cloud. Essas credenciais identificam a aplicação para o Google e precisam existir em cada ambiente onde o projeto for executado.
 
-Use também a origem autorizada do frontend local:
+Por segurança, o arquivo `.env` não é versionado. Então, quem clonar o repositório precisa criar ou receber credenciais OAuth e preencher o próprio `.env` localmente.
+
+1. Acesse o Google Cloud Console.
+2. Crie ou selecione um projeto.
+3. Abra **APIs & Services** ou **Google Auth Platform**.
+4. Configure a tela de consentimento OAuth:
+   - Informe o nome da aplicação.
+   - Informe o e-mail de suporte.
+   - Em ambiente local/teste, use o modo de teste se aplicável.
+   - Se o app estiver em modo de teste, adicione seu e-mail Google em **Test users**.
+5. Vá em **Clients** ou **Credentials**.
+6. Crie um OAuth Client:
+   - Application type: **Web application**.
+   - Name: qualquer nome claro, por exemplo `Form Builder Local`.
+7. Em **Authorized JavaScript origins**, adicione exatamente:
 
 ```text
 http://localhost:5173
 ```
 
-Depois preencha no `.env`:
+8. Em **Authorized redirect URIs**, adicione exatamente:
 
-```bash
-GOOGLE_CLIENT_ID=<client-id>
-GOOGLE_CLIENT_SECRET=<client-secret>
+```text
+http://localhost:8080/api/auth/google/callback
+```
+
+9. Salve o client e copie:
+   - **Client ID**
+   - **Client secret**
+
+10. Na raiz do projeto, crie o `.env` se ele ainda não existir:
+
+```powershell
+cd "C:\Users\ElviZ\Documents\ChatGPT\Teste Prático Falqon"
+Copy-Item .env.example .env
+```
+
+11. Abra o arquivo:
+
+```powershell
+notepad .env
+```
+
+12. Preencha as variáveis do Google:
+
+```env
+GOOGLE_CLIENT_ID=cole_aqui_o_client_id_completo
+GOOGLE_CLIENT_SECRET=cole_aqui_o_client_secret
 GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
 ```
 
-Sem `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`, o botão "Continuar com Google" não consegue concluir o login porque o backend não tem credenciais para iniciar o OAuth.
+O `GOOGLE_CLIENT_ID` deve ser o valor completo que termina em:
 
-Cada pessoa que clonar o repositório precisa usar credenciais OAuth próprias no `.env`. O `GOOGLE_CLIENT_SECRET` não deve ser versionado no GitHub. O Google exige credenciais de OAuth para identificar a aplicação, e a própria documentação orienta manter o arquivo/segredo do client fora de locais públicos como repositórios.
+```text
+.apps.googleusercontent.com
+```
+
+Não use API key, Service Account, Project ID ou Client Secret no campo `GOOGLE_CLIENT_ID`.
+
+13. Reinicie o backend para carregar o `.env` atualizado:
+
+```powershell
+cd "C:\Users\ElviZ\Documents\ChatGPT\Teste Prático Falqon\backend"
+go run ./cmd/server run
+```
+
+14. Em outro terminal, rode o frontend:
+
+```powershell
+cd "C:\Users\ElviZ\Documents\ChatGPT\Teste Prático Falqon\frontend"
+npm run dev
+```
+
+15. Abra `http://localhost:5173` e clique em **Continuar com Google**.
+
+### Observações importantes
+
+- Não coloque aspas ao redor dos valores no `.env`.
+- Não coloque espaços antes ou depois do `=`.
+- O `GOOGLE_CLIENT_SECRET` deve vir do mesmo OAuth Client do `GOOGLE_CLIENT_ID`.
+- Depois de alterar o `.env`, sempre reinicie o backend.
+- O `GOOGLE_CLIENT_SECRET` nunca deve ser enviado para o GitHub.
+- O app usa os escopos `openid email profile`; não é necessário ativar APIs adicionais só para login.
+- Se outra pessoa clonar o projeto, ela também precisará configurar o próprio `.env` com credenciais OAuth válidas.
+
+Exemplo de formato esperado:
+
+```env
+GOOGLE_CLIENT_ID=1234567890-abcdefg.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-exemplo_de_secret
+GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
+```
 
 Se aparecer `Erro 401: invalid_client` na tela do Google, confira:
 
-- O `GOOGLE_CLIENT_ID` deve ser o **Client ID completo**, terminando em `.apps.googleusercontent.com`.
+- O backend foi reiniciado depois da alteração no `.env`.
+- O `GOOGLE_CLIENT_ID` é o **Client ID completo**, terminando em `.apps.googleusercontent.com`.
 - O `GOOGLE_CLIENT_SECRET` deve vir do mesmo OAuth Client do Google Cloud.
 - O OAuth Client deve ser do tipo **Web application**.
 - O redirect URI autorizado deve ser exatamente `http://localhost:8080/api/auth/google/callback`.
-- Após alterar `.env`, reinicie o backend.
+
+Se aparecer `redirect_uri_mismatch`, confira se o valor em **Authorized redirect URIs** é exatamente igual ao `GOOGLE_REDIRECT_URL`, sem barra final extra.
+
+Se aparecer uma tela dizendo que o app não foi verificado ou que o acesso está bloqueado para o usuário, confira a tela de consentimento OAuth e adicione seu e-mail em **Test users** enquanto o app estiver em modo de teste.
 
 Rotas:
 
