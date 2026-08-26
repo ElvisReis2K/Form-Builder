@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const redirectTo = safeAdminRedirect(searchParams.get('redirectTo'));
 
   const authMutation = useMutation({
     mutationFn: () => {
@@ -30,7 +31,7 @@ export default function LoginPage() {
       });
     },
     onSuccess: () => {
-      navigate('/admin');
+      navigate(redirectTo, { replace: true });
     },
   });
 
@@ -111,4 +112,12 @@ export default function LoginPage() {
       </Stack>
     </Paper>
   );
+}
+
+function safeAdminRedirect(value: string | null) {
+  if (value !== null && value.startsWith('/admin')) {
+    return value;
+  }
+
+  return '/admin';
 }
