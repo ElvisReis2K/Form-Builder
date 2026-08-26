@@ -1,11 +1,11 @@
 import { Alert, Button, Link, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { apiURL, getErrorMessage, postApiAuthLogin, postApiAuthRegister } from '../../../api/generated/client';
 
-import { authMeQueryKey } from '../queryKeys';
+import { clearReauthenticationRequirement, completeAuthentication, endAuthenticatedSession } from '../session';
 import { loginPageStyles } from '../styles/loginPage.styles';
 
 type AuthMode = 'login' | 'register';
@@ -18,7 +18,22 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSessionResetting, setIsSessionResetting] = useState(true);
   const redirectTo = safeAdminRedirect(searchParams.get('redirectTo'));
+
+  useEffect(() => {
+    let active = true;
+
+    void endAuthenticatedSession(queryClient).finally(() => {
+      if (active) {
+        setIsSessionResetting(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [queryClient]);
 
   const authMutation = useMutation({
     mutationFn: () => {
@@ -33,13 +48,17 @@ export default function LoginPage() {
       });
     },
     onSuccess: (authResponse) => {
-      queryClient.setQueryData(authMeQueryKey, authResponse);
+      completeAuthentication(queryClient, authResponse);
       navigate(redirectTo, { replace: true });
     },
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSessionResetting) {
+      return;
+    }
+
     authMutation.mutate();
   }
 
@@ -49,6 +68,11 @@ export default function LoginPage() {
   }
 
   function startGoogleLogin() {
+    if (isSessionResetting) {
+      return;
+    }
+
+    clearReauthenticationRequirement();
     window.location.assign(apiURL('/api/auth/google'));
   }
 
@@ -93,7 +117,12 @@ export default function LoginPage() {
         />
 
         <Stack sx={loginPageStyles.actions}>
-          <Button type="submit" variant="contained" disabled={authMutation.isPending} sx={loginPageStyles.actionButton}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={authMutation.isPending || isSessionResetting}
+            sx={loginPageStyles.actionButton}
+          >
             {mode === 'login' ? 'Entrar' : 'Criar'}
           </Button>
           <Button type="button" variant="text" onClick={toggleMode} sx={loginPageStyles.actionButton}>
@@ -101,7 +130,13 @@ export default function LoginPage() {
           </Button>
         </Stack>
 
-        <Button type="button" variant="outlined" onClick={startGoogleLogin} sx={loginPageStyles.googleButton}>
+        <Button
+          type="button"
+          variant="outlined"
+          onClick={startGoogleLogin}
+          disabled={isSessionResetting}
+          sx={loginPageStyles.googleButton}
+        >
           Continuar com Google
         </Button>
 

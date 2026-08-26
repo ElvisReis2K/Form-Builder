@@ -2,8 +2,9 @@ import { AppBar, Box, Button, Container, Stack, Toolbar, Typography } from '@mui
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { getApiAuthMe, postApiAuthLogout } from '../api/generated/client';
+import { getApiAuthMe } from '../api/generated/client';
 import { authMeQueryKey } from '../features/auth/queryKeys';
+import { endAuthenticatedSession, isReauthenticationRequired } from '../features/auth/session';
 import { appStyles } from './app.styles';
 import AppRoutes from './AppRoutes';
 import { authenticatedNavItems, guestNavItems } from './navigation';
@@ -16,14 +17,14 @@ export default function App() {
     queryKey: authMeQueryKey,
     queryFn: () => getApiAuthMe(),
     retry: false,
+    enabled: !isReauthenticationRequired(),
   });
   const isLoginPage = location.pathname === '/';
   const canShowAuthenticatedActions = authQuery.isSuccess && !isLoginPage;
   const navItems = canShowAuthenticatedActions ? authenticatedNavItems : guestNavItems;
   const logoutMutation = useMutation({
-    mutationFn: () => postApiAuthLogout(),
+    mutationFn: () => endAuthenticatedSession(queryClient),
     onSettled: () => {
-      queryClient.removeQueries({ queryKey: authMeQueryKey });
       navigate('/', { replace: true });
     },
   });
