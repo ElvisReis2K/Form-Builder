@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -17,6 +18,8 @@ const (
 	googleUserInfoEndpoint      = "https://openidconnect.googleapis.com/v1/userinfo"
 	googleOAuthScopes           = "openid email profile"
 )
+
+var googleClientIDPattern = regexp.MustCompile(`^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$`)
 
 type GoogleOAuthConfig struct {
 	ClientID     string
@@ -59,9 +62,25 @@ func NewGoogleOAuth(config GoogleOAuthConfig) *GoogleOAuth {
 }
 
 func (oauth *GoogleOAuth) Configured() bool {
-	return strings.TrimSpace(oauth.config.ClientID) != "" &&
-		strings.TrimSpace(oauth.config.ClientSecret) != "" &&
-		strings.TrimSpace(oauth.config.RedirectURL) != ""
+	return oauth.ConfigurationError() == ""
+}
+
+func (oauth *GoogleOAuth) ConfigurationError() string {
+	clientID := strings.TrimSpace(oauth.config.ClientID)
+	if clientID == "" {
+		return "GOOGLE_CLIENT_ID não configurado"
+	}
+	if !googleClientIDPattern.MatchString(clientID) {
+		return "GOOGLE_CLIENT_ID inválido; use o Client ID completo que termina em .apps.googleusercontent.com"
+	}
+	if strings.TrimSpace(oauth.config.ClientSecret) == "" {
+		return "GOOGLE_CLIENT_SECRET não configurado"
+	}
+	if strings.TrimSpace(oauth.config.RedirectURL) == "" {
+		return "GOOGLE_REDIRECT_URL não configurado"
+	}
+
+	return ""
 }
 
 func (oauth *GoogleOAuth) AuthCodeURL(state string) string {

@@ -176,6 +176,16 @@ GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
 
 Sem `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`, o botão "Continuar com Google" não consegue concluir o login porque o backend não tem credenciais para iniciar o OAuth.
 
+Cada pessoa que clonar o repositório precisa usar credenciais OAuth próprias no `.env`. O `GOOGLE_CLIENT_SECRET` não deve ser versionado no GitHub. O Google exige credenciais de OAuth para identificar a aplicação, e a própria documentação orienta manter o arquivo/segredo do client fora de locais públicos como repositórios.
+
+Se aparecer `Erro 401: invalid_client` na tela do Google, confira:
+
+- O `GOOGLE_CLIENT_ID` deve ser o **Client ID completo**, terminando em `.apps.googleusercontent.com`.
+- O `GOOGLE_CLIENT_SECRET` deve vir do mesmo OAuth Client do Google Cloud.
+- O OAuth Client deve ser do tipo **Web application**.
+- O redirect URI autorizado deve ser exatamente `http://localhost:8080/api/auth/google/callback`.
+- Após alterar `.env`, reinicie o backend.
+
 Rotas:
 
 - `GET /api/auth/google`: inicia login e redireciona para o Google.
