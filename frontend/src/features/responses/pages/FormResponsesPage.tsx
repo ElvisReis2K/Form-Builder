@@ -21,8 +21,14 @@ import {
   getApiFormsFormIdResponsesExport,
   getErrorMessage,
 } from '../../../api/generated/client';
-import type { FormSubmission, FormSubmissionExportResponse } from '../../forms/types';
 import { responsesPageStyles } from '../styles/responsesPage.styles';
+import {
+  downloadResponsesExcel,
+  downloadResponsesJSON,
+  downloadResponsesPDF,
+  formatAnswer,
+  formatDate,
+} from '../utils/responseExports';
 
 export default function FormResponsesPage() {
   const { formId } = useParams();
@@ -45,7 +51,7 @@ export default function FormResponsesPage() {
         path: { formId: formId ?? '' },
       }),
     onSuccess: (payload) => {
-      downloadJSON(payload, responseExportFilename(form?.title ?? formId ?? 'formulario'));
+      downloadResponsesJSON(payload);
     },
   });
   const deleteMutation = useMutation({
@@ -67,9 +73,29 @@ export default function FormResponsesPage() {
           <Typography variant="h4">Respostas</Typography>
           {form ? <Typography color="text.secondary">{form.title}</Typography> : null}
         </Stack>
-        <Button variant="outlined" onClick={() => exportMutation.mutate()} disabled={!form || responses.length === 0 || isBusy}>
-          Exportar JSON
-        </Button>
+        <Stack sx={responsesPageStyles.exportActions}>
+          <Button
+            variant="outlined"
+            onClick={() => exportMutation.mutate()}
+            disabled={!form || responses.length === 0 || isBusy}
+          >
+            Exportar JSON
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => form && downloadResponsesPDF(form, responses)}
+            disabled={!form || responses.length === 0 || isBusy}
+          >
+            Exportar PDF
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => form && downloadResponsesExcel(form, responses)}
+            disabled={!form || responses.length === 0 || isBusy}
+          >
+            Exportar Excel
+          </Button>
+        </Stack>
       </Stack>
 
       {isBusy ? <LinearProgress sx={responsesPageStyles.loadingBar} /> : null}
@@ -82,11 +108,11 @@ export default function FormResponsesPage() {
               <TableHead sx={responsesPageStyles.tableHead}>
                 <TableRow>
                   <TableCell>Enviada em</TableCell>
-                  <TableCell>Ciencia LGPD</TableCell>
+                  <TableCell>Ciência LGPD</TableCell>
                   {form.fields.map((field) => (
                     <TableCell key={field.id}>{field.label}</TableCell>
                   ))}
-                  <TableCell>Acoes</TableCell>
+                  <TableCell>Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -116,7 +142,7 @@ export default function FormResponsesPage() {
         ) : (
           <Stack sx={responsesPageStyles.emptyState}>
             <Typography variant="h6">Nenhuma resposta ainda</Typography>
-            <Typography color="text.secondary">As respostas de formularios publicados aparecerao aqui.</Typography>
+            <Typography color="text.secondary">As respostas de formulários publicados aparecerão aqui.</Typography>
           </Stack>
         )}
       </Paper>
@@ -128,47 +154,4 @@ function deleteSelectedResponse(responseId: string, deleteResponse: (responseId:
   if (window.confirm('Excluir esta resposta?')) {
     deleteResponse(responseId);
   }
-}
-
-function downloadJSON(payload: FormSubmissionExportResponse, filename: string) {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
-function responseExportFilename(title: string) {
-  const slug = title
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-
-  return `respostas-${slug || 'formulario'}.json`;
-}
-
-function formatAnswer(response: FormSubmission, fieldId: string) {
-  const value = response.answers[fieldId];
-  if (value === undefined || value === null || value === '') {
-    return '-';
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? 'Sim' : 'Nao';
-  }
-
-  return String(value);
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
 }

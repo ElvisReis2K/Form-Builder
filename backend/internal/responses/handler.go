@@ -142,13 +142,13 @@ func (handler *Handler) submitResponse(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) authenticate(w http.ResponseWriter, r *http.Request) (auth.User, bool) {
 	token, ok := auth.SessionToken(r)
 	if !ok {
-		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticacao obrigatoria")
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticação obrigatória")
 		return auth.User{}, false
 	}
 
 	user, err := handler.authService.Authenticate(r.Context(), token)
 	if err != nil {
-		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticacao obrigatoria")
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticação obrigatória")
 		return auth.User{}, false
 	}
 
@@ -161,7 +161,7 @@ func (handler *Handler) writeServiceError(w http.ResponseWriter, err error) {
 	case errors.As(err, &validationError):
 		httpx.WriteError(w, http.StatusBadRequest, "validation_error", validationError.Message)
 	case errors.Is(err, ErrNotFound):
-		httpx.WriteError(w, http.StatusNotFound, "not_found", "recurso de resposta nao encontrado")
+		httpx.WriteError(w, http.StatusNotFound, "not_found", "recurso de resposta não encontrado")
 	default:
 		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "ocorreu um erro inesperado")
 	}

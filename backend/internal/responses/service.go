@@ -15,7 +15,11 @@ import (
 
 const maxTextAnswerLength = 4000
 
-var uuidPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
+var (
+	uuidPattern     = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`)
+	nonDigitPattern = regexp.MustCompile(`\D`)
+	phoneBRPattern  = regexp.MustCompile(`^\d{12}$`)
+)
 
 type Service struct {
 	formsRepo *forms.Repository
@@ -32,7 +36,7 @@ func NewService(formsRepo *forms.Repository, repo *Repository) *Service {
 func (service *Service) SubmitResponse(ctx context.Context, slug string, input SubmissionInput) (Response, error) {
 	slug = strings.TrimSpace(slug)
 	if slug == "" {
-		return Response{}, ValidationError{Message: "slug do formulario e obrigatorio"}
+		return Response{}, ValidationError{Message: "slug do formulário é obrigatório"}
 	}
 
 	form, err := service.formsRepo.GetPublishedBySlug(ctx, slug)
@@ -81,10 +85,10 @@ func (service *Service) ListResponses(ctx context.Context, ownerID string, formI
 }
 
 func (service *Service) DeleteResponse(ctx context.Context, ownerID string, formID string, responseID string) error {
-	if err := validateID(formID, "id do formulario invalido"); err != nil {
+	if err := validateID(formID, "id do formulário inválido"); err != nil {
 		return err
 	}
-	if err := validateID(responseID, "id da resposta invalido"); err != nil {
+	if err := validateID(responseID, "id da resposta inválido"); err != nil {
 		return err
 	}
 
@@ -93,7 +97,7 @@ func (service *Service) DeleteResponse(ctx context.Context, ownerID string, form
 
 func validatePrivacyAcknowledgement(acknowledged bool) error {
 	if !acknowledged {
-		return ValidationError{Message: "e necessario confirmar ciencia do aviso de privacidade"}
+		return ValidationError{Message: "é necessário confirmar ciência do aviso de privacidade"}
 	}
 
 	return nil
@@ -111,7 +115,7 @@ func validateAnswers(form forms.Form, answers map[string]any) (map[string]any, e
 
 	for fieldID := range answers {
 		if _, ok := fieldsByID[fieldID]; !ok {
-			return nil, ValidationError{Message: "campo da resposta invalido"}
+			return nil, ValidationError{Message: "campo da resposta inválido"}
 		}
 	}
 
@@ -120,7 +124,7 @@ func validateAnswers(form forms.Form, answers map[string]any) (map[string]any, e
 		value, hasValue := answers[field.ID]
 		if !hasValue || isEmptyAnswer(field, value) {
 			if field.Required {
-				return nil, ValidationError{Message: fmt.Sprintf("%s e obrigatorio", field.Label)}
+				return nil, ValidationError{Message: fmt.Sprintf("%s é obrigatório", field.Label)}
 			}
 
 			continue
@@ -150,12 +154,14 @@ func normalizeAnswer(field forms.Field, value any) (any, error) {
 		text := answer.(string)
 		parsed, err := mail.ParseAddress(text)
 		if err != nil || parsed.Address != text {
-			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um e-mail valido", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um e-mail válido", field.Label)}
 		}
 
 		return text, nil
 	case forms.FieldTypeNumber:
 		return normalizeNumberAnswer(field, value)
+	case forms.FieldTypePhone:
+		return normalizePhoneAnswer(field, value)
 	case forms.FieldTypeSelect:
 		answer, err := normalizeTextAnswer(field, value)
 		if err != nil {
@@ -169,7 +175,7 @@ func normalizeAnswer(field forms.Field, value any) (any, error) {
 			}
 		}
 
-		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser uma das opcoes disponiveis", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser uma das opções disponíveis", field.Label)}
 	case forms.FieldTypeCheckbox:
 		answer, ok := value.(bool)
 		if !ok {
@@ -177,12 +183,12 @@ func normalizeAnswer(field forms.Field, value any) (any, error) {
 		}
 
 		if field.Required && !answer {
-			return nil, ValidationError{Message: fmt.Sprintf("%s e obrigatorio", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s é obrigatório", field.Label)}
 		}
 
 		return answer, nil
 	default:
-		return nil, ValidationError{Message: "tipo de campo invalido"}
+		return nil, ValidationError{Message: "tipo de campo inválido"}
 	}
 }
 
@@ -194,7 +200,7 @@ func normalizeTextAnswer(field forms.Field, value any) (any, error) {
 
 	text = strings.TrimSpace(text)
 	if len(text) > maxTextAnswerLength {
-		return nil, ValidationError{Message: fmt.Sprintf("%s esta muito longo", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s está muito longo", field.Label)}
 	}
 
 	return text, nil
@@ -204,28 +210,42 @@ func normalizeNumberAnswer(field forms.Field, value any) (any, error) {
 	switch number := value.(type) {
 	case float64:
 		if math.IsNaN(number) || math.IsInf(number, 0) {
-			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um número válido", field.Label)}
 		}
 
 		return number, nil
 	case string:
 		number = strings.TrimSpace(number)
 		if number == "" {
-			return nil, ValidationError{Message: fmt.Sprintf("%s e obrigatorio", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s é obrigatório", field.Label)}
 		}
 
 		parsed, err := parseNumber(number)
 		if err != nil {
-			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um número válido", field.Label)}
 		}
 		if math.IsNaN(parsed) || math.IsInf(parsed, 0) {
-			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
+			return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um número válido", field.Label)}
 		}
 
 		return parsed, nil
 	default:
-		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um numero valido", field.Label)}
+		return nil, ValidationError{Message: fmt.Sprintf("%s deve ser um número válido", field.Label)}
 	}
+}
+
+func normalizePhoneAnswer(field forms.Field, value any) (any, error) {
+	answer, err := normalizeTextAnswer(field, value)
+	if err != nil {
+		return nil, err
+	}
+
+	digits := nonDigitPattern.ReplaceAllString(answer.(string), "")
+	if !phoneBRPattern.MatchString(digits) {
+		return nil, ValidationError{Message: fmt.Sprintf("%s deve ter DDD com 3 dígitos e telefone com 9 dígitos", field.Label)}
+	}
+
+	return digits, nil
 }
 
 func parseNumber(value string) (float64, error) {

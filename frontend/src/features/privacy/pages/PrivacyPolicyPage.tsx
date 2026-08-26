@@ -7,37 +7,37 @@ const policySections = [
   {
     title: 'Dados tratados',
     body:
-      'A aplicacao trata dados de administradores, como nome, e-mail, senha protegida por hash e dados de login Google quando usado. Tambem trata estruturas de formularios e respostas enviadas por visitantes.',
+      'A aplicação trata dados de administradores, como nome, e-mail, senha protegida por hash e dados de login Google quando usado. Também trata estruturas de formulários e respostas enviadas por visitantes.',
   },
   {
     title: 'Finalidades',
     body:
-      'Os dados sao usados para autenticar administradores, criar e publicar formularios, receber respostas publicas, listar respostas no painel administrativo e permitir exportacao ou exclusao quando necessario.',
+      'Os dados são usados para autenticar administradores, criar e publicar formulários, receber respostas públicas, listar respostas no painel administrativo e permitir exportação ou exclusão quando necessário.',
   },
   {
-    title: 'Formularios publicos',
+    title: 'Formulários públicos',
     body:
-      'Cada formulario publicado deve informar finalidade do tratamento, retencao das respostas e e-mail de contato do controlador. O visitante precisa confirmar ciencia desse aviso antes de enviar uma resposta.',
+      'Cada formulário publicado deve informar finalidade do tratamento, retenção das respostas e e-mail de contato do controlador. O visitante precisa confirmar ciência desse aviso antes de enviar uma resposta.',
   },
   {
     title: 'Cookies essenciais',
     body:
-      'O sistema usa cookies essenciais de sessao e de seguranca do fluxo Google OAuth. Eles mantem o administrador autenticado e ajudam a validar o retorno do login externo.',
+      'O sistema usa cookies essenciais de sessão e de segurança do fluxo Google OAuth. Eles mantêm o administrador autenticado e ajudam a validar o retorno do login externo.',
   },
   {
     title: 'Compartilhamento',
     body:
-      'Quando o login Google e usado, o backend consulta dados basicos do perfil Google, como identificador, e-mail verificado e nome. A aplicacao nao inclui rastreadores ou analytics no frontend.',
+      'Quando o login Google é usado, o backend consulta dados básicos do perfil Google, como identificador, e-mail verificado e nome. A aplicação não inclui rastreadores ou analytics no frontend.',
   },
   {
     title: 'Direitos do titular',
     body:
-      'O titular pode solicitar informacoes, acesso, correcao, exportacao ou exclusao dos seus dados ao controlador informado no formulario. O painel administrativo oferece exportacao e exclusao de respostas para apoiar esse atendimento.',
+      'O titular pode solicitar informações, acesso, correção, exportação ou exclusão dos seus dados ao controlador informado no formulário. O painel administrativo oferece exportação e exclusão de respostas para apoiar esse atendimento.',
   },
   {
-    title: 'Retencao e seguranca',
+    title: 'Retenção e segurança',
     body:
-      'A retencao das respostas segue o prazo informado em cada formulario. Sessoes possuem expiracao, senhas usam hash bcrypt e tokens de sessao sao armazenados no banco apenas como hash HMAC.',
+      'A retenção das respostas segue o prazo informado em cada formulário. Sessões possuem expiração, senhas usam hash bcrypt e tokens de sessão são armazenados no banco apenas como hash HMAC.',
   },
 ];
 
@@ -46,9 +46,9 @@ export default function PrivacyPolicyPage() {
     <Paper sx={privacyPolicyPageStyles.panel}>
       <Stack sx={privacyPolicyPageStyles.stack}>
         <Stack sx={privacyPolicyPageStyles.header}>
-          <Typography variant="h4">Politica de Privacidade</Typography>
+          <Typography variant="h4">Política de Privacidade</Typography>
           <Typography color="text.secondary">
-            Informacoes basicas sobre tratamento de dados pessoais no Form Builder.
+            Informações básicas sobre tratamento de dados pessoais no Form Builder.
           </Typography>
         </Stack>
 
@@ -60,7 +60,7 @@ export default function PrivacyPolicyPage() {
         ))}
 
         <Typography variant="body2" color="text.secondary">
-          Para formularios especificos, use o contato informado no proprio formulario. Para voltar ao sistema, acesse{' '}
+          Para formulários específicos, use o contato informado no próprio formulário. Para voltar ao sistema, acesse{' '}
           <Link component={RouterLink} to="/">
             Entrar
           </Link>

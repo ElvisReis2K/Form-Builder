@@ -98,13 +98,13 @@ export default function PublicFormPage() {
 
             <Stack sx={formPagesStyles.privacyNotice}>
               <Typography variant="subtitle2">Aviso de privacidade</Typography>
-              <Typography variant="body2">Finalidade: {form.privacyPurpose ?? 'Nao informada'}</Typography>
-              <Typography variant="body2">Retencao: {form.retentionPolicy ?? 'Nao informada'}</Typography>
-              <Typography variant="body2">Contato do controlador: {form.controllerEmail ?? 'Nao informado'}</Typography>
+              <Typography variant="body2">Finalidade: {form.privacyPurpose ?? 'Não informada'}</Typography>
+              <Typography variant="body2">Retenção: {form.retentionPolicy ?? 'Não informada'}</Typography>
+              <Typography variant="body2">Contato do controlador: {form.controllerEmail ?? 'Não informado'}</Typography>
               <Typography variant="caption" color="text.secondary">
                 Saiba mais na{' '}
                 <Link component={RouterLink} to="/privacidade">
-                  Politica de Privacidade
+                  Política de Privacidade
                 </Link>
                 .
               </Typography>
@@ -123,7 +123,7 @@ export default function PublicFormPage() {
                   onChange={(_, checked) => setPrivacyAcknowledged(checked)}
                 />
               }
-              label="Li e entendi o aviso de privacidade deste formulario."
+              label="Li e entendi o aviso de privacidade deste formulário."
             />
 
             <Button
@@ -172,7 +172,7 @@ function renderField(
         value={String(answers[field.id] ?? '')}
         onChange={(event) => updateAnswer(field.id, event.target.value)}
       >
-        <MenuItem value="">Selecione uma opcao</MenuItem>
+        <MenuItem value="">Selecione uma opção</MenuItem>
         {field.options.map((option) => (
           <MenuItem key={option} value={option}>
             {option}
@@ -186,13 +186,45 @@ function renderField(
     <TextField
       key={field.id}
       label={field.label}
-      type={field.type === 'number' || field.type === 'email' ? field.type : 'text'}
+      type={inputTypeForField(field)}
       value={String(answers[field.id] ?? '')}
       onChange={(event) => updateAnswer(field.id, event.target.value)}
       placeholder={field.placeholder ?? undefined}
       required={field.required}
       multiline={field.type === 'textarea'}
       minRows={field.type === 'textarea' ? 4 : undefined}
+      inputProps={inputPropsForField(field)}
     />
   );
+}
+
+function inputTypeForField(field: FormField) {
+  if (field.type === 'number' || field.type === 'email') {
+    return field.type;
+  }
+
+  if (field.type === 'phone') {
+    return 'tel';
+  }
+
+  return 'text';
+}
+
+function inputPropsForField(field: FormField) {
+  if (field.type === 'number') {
+    return {
+      inputMode: 'decimal',
+    } as const;
+  }
+
+  if (field.type === 'phone') {
+    return {
+      inputMode: 'numeric',
+      maxLength: 12,
+      pattern: '[0-9]{12}',
+      title: 'Informe 12 dígitos: 3 do DDD e 9 do telefone.',
+    } as const;
+  }
+
+  return undefined;
 }

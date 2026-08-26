@@ -1,14 +1,15 @@
 import type { BuilderForm, FieldType, FormField, FormRequest } from '../types';
 
-export const fieldTypes: FieldType[] = ['text', 'textarea', 'email', 'number', 'select', 'checkbox'];
+export const fieldTypes: FieldType[] = ['text', 'textarea', 'email', 'number', 'phone', 'select', 'checkbox'];
 
 export const fieldTypeLabels: Record<FieldType, string> = {
   text: 'Texto curto',
   textarea: 'Texto longo',
   email: 'E-mail',
-  number: 'Numero',
-  select: 'Selecao',
-  checkbox: 'Caixa de selecao',
+  number: 'Número',
+  phone: 'Telefone',
+  select: 'Seleção',
+  checkbox: 'Caixa de seleção',
 };
 
 export type FieldDraft = {
@@ -35,7 +36,7 @@ let draftSequence = 0;
 export function createBlankDraft(): FormDraft {
   return {
     id: null,
-    title: 'Formulario sem titulo',
+    title: 'Formulário sem título',
     description: '',
     controllerEmail: '',
     privacyPurpose: '',

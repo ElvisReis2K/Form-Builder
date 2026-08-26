@@ -183,7 +183,7 @@ export default function AdminHomePage() {
   }
 
   function deleteSelectedForm() {
-    if (draft.id !== null && window.confirm('Excluir este formulario?')) {
+    if (draft.id !== null && window.confirm('Excluir este formulário?')) {
       deleteMutation.mutate(draft.id);
     }
   }
@@ -228,11 +228,11 @@ export default function AdminHomePage() {
     <Stack sx={formPagesStyles.pageStack}>
       <Stack sx={formPagesStyles.header}>
         <Stack sx={formPagesStyles.titleBlock}>
-          <Typography variant="h4">Formularios</Typography>
-          <Typography color="text.secondary">Area administrativa</Typography>
+          <Typography variant="h4">Formulários</Typography>
+          <Typography color="text.secondary">Área administrativa</Typography>
         </Stack>
         <Button variant="contained" onClick={startNewForm}>
-          Novo formulario
+          Novo formulário
         </Button>
       </Stack>
 
@@ -242,7 +242,7 @@ export default function AdminHomePage() {
       <Box sx={formPagesStyles.workspace}>
         <Paper sx={formPagesStyles.sidebarPanel}>
           <Stack sx={formPagesStyles.sidebarHeader}>
-            <Typography variant="subtitle1">Formularios salvos</Typography>
+            <Typography variant="subtitle1">Formulários salvos</Typography>
             <Chip label={forms.length} size="small" />
           </Stack>
           <Divider />
@@ -250,7 +250,7 @@ export default function AdminHomePage() {
             {forms.length === 0 ? (
               <Stack sx={formPagesStyles.sidebarEmptyState}>
                 <Typography variant="body2" color="text.secondary">
-                  Nenhum formulario salvo
+                  Nenhum formulário salvo
                 </Typography>
               </Stack>
             ) : null}
@@ -276,8 +276,8 @@ export default function AdminHomePage() {
           <Stack sx={formPagesStyles.editorStack}>
             <Stack sx={formPagesStyles.editorHeader}>
               <Stack sx={formPagesStyles.titleBlock}>
-                <Typography variant="h5">{isCreating ? 'Novo formulario' : 'Editor de formulario'}</Typography>
-                <Typography color="text.secondary">{hasSavedForm ? draft.id : 'Rascunho nao salvo'}</Typography>
+                <Typography variant="h5">{isCreating ? 'Novo formulário' : 'Editor de formulário'}</Typography>
+                <Typography color="text.secondary">{hasSavedForm ? draft.id : 'Rascunho não salvo'}</Typography>
               </Stack>
               <Chip
                 label={hasSavedForm ? statusLabels[selectedStatus] : statusLabels.draft}
@@ -324,7 +324,7 @@ export default function AdminHomePage() {
                 required
               />
               <TextField
-                label="Retencao das respostas"
+                label="Retenção das respostas"
                 value={draft.retentionPolicy}
                 onChange={(event) => updateDraft({ retentionPolicy: event.target.value })}
                 multiline
@@ -367,7 +367,7 @@ export default function AdminHomePage() {
                       ))}
                     </TextField>
                     <TextField
-                      label="Rotulo"
+                      label="Rótulo"
                       value={field.label}
                       onChange={(event) => updateField(field.clientId, { label: event.target.value })}
                       size="small"
@@ -386,13 +386,13 @@ export default function AdminHomePage() {
                           onChange={(_, checked) => updateField(field.clientId, { required: checked })}
                         />
                       }
-                      label="Obrigatorio"
+                      label="Obrigatório"
                     />
                   </Box>
 
                   {field.type === 'select' ? (
                     <TextField
-                      label="Opcoes"
+                      label="Opções"
                       value={field.optionsText}
                       onChange={(event) => updateField(field.clientId, { optionsText: event.target.value })}
                       multiline
@@ -420,7 +420,7 @@ export default function AdminHomePage() {
               )}
               {selectedForm?.publicUrl ? (
                 <Button component={RouterLink} to={selectedForm.publicUrl} variant="text">
-                  Abrir formulario publico
+                  Abrir formulário público
                 </Button>
               ) : null}
               {hasSavedForm ? (

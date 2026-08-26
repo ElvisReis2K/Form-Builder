@@ -137,7 +137,7 @@ func (handler *Handler) me(w http.ResponseWriter, r *http.Request) {
 
 	token, ok := SessionToken(r)
 	if !ok {
-		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticacao obrigatoria")
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticação obrigatória")
 		return
 	}
 
@@ -152,7 +152,7 @@ func (handler *Handler) me(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) googleStart(w http.ResponseWriter, r *http.Request) {
 	if handler.googleOAuth == nil || !handler.googleOAuth.Configured() {
-		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google nao configurado")
+		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google não configurado")
 		return
 	}
 
@@ -168,14 +168,14 @@ func (handler *Handler) googleStart(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) googleCallback(w http.ResponseWriter, r *http.Request) {
 	if handler.googleOAuth == nil || !handler.googleOAuth.Configured() {
-		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google nao configurado")
+		httpx.WriteError(w, http.StatusServiceUnavailable, "google_oauth_not_configured", "login com Google não configurado")
 		return
 	}
 
 	expectedState, ok := OAuthState(r)
 	handler.clearOAuthStateCookie(w)
 	if !ok || expectedState != r.URL.Query().Get("state") {
-		httpx.WriteError(w, http.StatusBadRequest, "invalid_oauth_state", "estado do OAuth invalido")
+		httpx.WriteError(w, http.StatusBadRequest, "invalid_oauth_state", "estado do OAuth inválido")
 		return
 	}
 
@@ -258,11 +258,11 @@ func (handler *Handler) writeServiceError(w http.ResponseWriter, err error) {
 	case errors.As(err, &validationError):
 		httpx.WriteError(w, http.StatusBadRequest, "validation_error", validationError.Message)
 	case errors.Is(err, ErrEmailTaken):
-		httpx.WriteError(w, http.StatusConflict, "email_taken", "e-mail ja cadastrado")
+		httpx.WriteError(w, http.StatusConflict, "email_taken", "e-mail já cadastrado")
 	case errors.Is(err, ErrInvalidCredentials):
-		httpx.WriteError(w, http.StatusUnauthorized, "invalid_credentials", "e-mail ou senha invalidos")
+		httpx.WriteError(w, http.StatusUnauthorized, "invalid_credentials", "e-mail ou senha inválidos")
 	case errors.Is(err, ErrUnauthenticated):
-		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticacao obrigatoria")
+		httpx.WriteError(w, http.StatusUnauthorized, "unauthenticated", "autenticação obrigatória")
 	default:
 		httpx.WriteError(w, http.StatusInternalServerError, "internal_error", "ocorreu um erro inesperado")
 	}

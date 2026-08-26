@@ -141,6 +141,7 @@
               "textarea",
               "email",
               "number",
+              "phone",
               "select",
               "checkbox"
             ],
@@ -188,6 +189,7 @@
               "textarea",
               "email",
               "number",
+              "phone",
               "select",
               "checkbox"
             ],
@@ -271,6 +273,7 @@
               "textarea",
               "email",
               "number",
+              "phone",
               "select",
               "checkbox"
             ],

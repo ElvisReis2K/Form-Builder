@@ -83,7 +83,7 @@ export default function LoginPage() {
       <Stack component="form" onSubmit={handleSubmit} sx={loginPageStyles.form}>
         <Stack sx={loginPageStyles.header}>
           <Typography variant="h5">{mode === 'login' ? 'Faça Login ou Cadastre-se' : 'Criar conta'}</Typography>
-          <Typography color="text.secondary">Construtor de Formularios</Typography>
+          <Typography color="text.secondary">Construtor de Formulários</Typography>
         </Stack>
 
         {authMutation.error ? <Alert severity="error">{getErrorMessage(authMutation.error)}</Alert> : null}
@@ -143,7 +143,7 @@ export default function LoginPage() {
         <Typography variant="caption" color="text.secondary" sx={loginPageStyles.privacyText}>
           Ao usar o sistema, consulte a{' '}
           <Link component={RouterLink} to="/privacidade">
-            Politica de Privacidade
+            Política de Privacidade
           </Link>
           .
         </Typography>

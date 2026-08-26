@@ -528,7 +528,7 @@ func freeObjectSchema() map[string]any {
 func fieldTypeSchema() map[string]any {
 	return map[string]any{
 		"type": "string",
-		"enum": []string{"text", "textarea", "email", "number", "select", "checkbox"},
+		"enum": []string{"text", "textarea", "email", "number", "phone", "select", "checkbox"},
 	}
 }
 

@@ -23,6 +23,18 @@ export const responsesPageStyles = {
   titleBlock: {
     gap: 0.75,
   },
+  exportActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 1,
+    justifyContent: {
+      xs: 'stretch',
+      sm: 'flex-end',
+    },
+    '& .MuiButton-root': {
+      minWidth: 126,
+    },
+  },
   panel: {
     overflow: 'hidden',
     bgcolor: 'rgba(255, 255, 255, 0.92)',

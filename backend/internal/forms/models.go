@@ -16,6 +16,7 @@ const (
 	FieldTypeTextarea FieldType = "textarea"
 	FieldTypeEmail    FieldType = "email"
 	FieldTypeNumber   FieldType = "number"
+	FieldTypePhone    FieldType = "phone"
 	FieldTypeSelect   FieldType = "select"
 	FieldTypeCheckbox FieldType = "checkbox"
 )

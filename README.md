@@ -1,17 +1,17 @@
 # Form Builder
 
-Aplicacao full stack para criacao, publicacao e resposta de formularios. Este repositorio foi criado para o desafio tecnico de Full Stack Developer.
+Aplicação full stack para criação, publicação e resposta de formulários. Este repositório foi criado para o desafio técnico de Full Stack Developer.
 
 ## Stack escolhida
 
-- Backend: Go como servico independente.
+- Backend: Go como serviço independente.
 - Banco: PostgreSQL.
 - Frontend: React, TypeScript e Vite.
 - UI: MUI.
 - Rotas: React Router.
 - Estado remoto: TanStack Query.
 - Contrato de API: OpenAPI 3.
-- Client TypeScript: gerado a partir da especificacao OpenAPI.
+- Client TypeScript: gerado a partir da especificação OpenAPI.
 
 ## Requisitos locais
 
@@ -42,32 +42,32 @@ Aplicacao full stack para criacao, publicacao e resposta de formularios. Este re
 └── README.md
 ```
 
-## Configuracao
+## Configuração
 
-Copie `.env.example` para `.env` e ajuste os valores conforme necessario.
+Copie `.env.example` para `.env` e ajuste os valores conforme necessário.
 
-Variaveis principais:
+Variáveis principais:
 
-- `ADDRESS`: endereco do backend.
-- `DATABASE_URL`: conexao do PostgreSQL.
+- `ADDRESS`: endereço do backend.
+- `DATABASE_URL`: conexão do PostgreSQL.
 - `FRONTEND_URL`: origem permitida para o frontend.
-- `SESSION_SECRET`: segredo usado para gerar o hash dos tokens de sessao.
-- `SESSION_TTL_HOURS`: duracao da sessao em horas.
-- `COOKIE_SECURE`: use `true` quando a API estiver atras de HTTPS.
+- `SESSION_SECRET`: segredo usado para gerar o hash dos tokens de sessão.
+- `SESSION_TTL_HOURS`: duração da sessão em horas.
+- `COOKIE_SECURE`: use `true` quando a API estiver atrás de HTTPS.
 - `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`: credenciais OAuth do Google.
 - `GOOGLE_REDIRECT_URL`: callback autorizado no Google Cloud. Em local, use `http://localhost:8080/api/auth/google/callback`.
 
 ## Banco de dados
 
-Configure `DATABASE_URL` apontando para uma instancia PostgreSQL. Voce pode usar um PostgreSQL ja instalado na maquina ou subir o servico auxiliar via Docker Compose.
+Configure `DATABASE_URL` apontando para uma instância PostgreSQL. Você pode usar um PostgreSQL já instalado na máquina ou subir o serviço auxiliar via Docker Compose.
 
-Opcao com Docker Compose:
+Opção com Docker Compose:
 
 ```bash
 make db-up
 ```
 
-Opcao com PostgreSQL local:
+Opção com PostgreSQL local:
 
 ```bash
 createdb form_builder
@@ -85,7 +85,7 @@ As migrations ficam em `backend/migrations`.
 make migrate-up
 ```
 
-Para desfazer a ultima migration aplicada:
+Para desfazer a última migration aplicada:
 
 ```bash
 make migrate-down
@@ -93,7 +93,7 @@ make migrate-down
 
 ## Backend
 
-O backend roda como um servico independente em Go:
+O backend roda como um serviço independente em Go:
 
 ```bash
 make backend-dev
@@ -111,7 +111,7 @@ Readiness com ping no PostgreSQL:
 curl http://localhost:8080/readyz
 ```
 
-Comandos do binario:
+Comandos do binário:
 
 ```bash
 cd backend
@@ -121,9 +121,9 @@ go run ./cmd/server migrate down
 go run ./cmd/server openapi
 ```
 
-## Autenticacao por e-mail e senha
+## Autenticação por e-mail e senha
 
-A base atual possui cadastro, login, logout e consulta do usuario autenticado. A sessao usa cookie HTTP-only (`form_builder_session`) e persiste apenas o hash HMAC do token no banco.
+A base atual possui cadastro, login, logout e consulta do usuário autenticado. A sessão usa cookie HTTP-only (`form_builder_session`) e persiste apenas o hash HMAC do token no banco.
 
 Cadastro:
 
@@ -141,16 +141,16 @@ curl -i http://localhost:8080/api/auth/login \
   -d '{"email":"admin@example.com","password":"password123"}'
 ```
 
-Usuario autenticado:
+Usuário autenticado:
 
 ```bash
 curl -i http://localhost:8080/api/auth/me \
   --cookie "form_builder_session=<cookie-value>"
 ```
 
-## Autenticacao com Google
+## Autenticação com Google
 
-O login com Google usa OAuth 2.0 Authorization Code no backend Go. O frontend apenas redireciona para `GET /api/auth/google`; o callback valida `state`, consulta o perfil no Google e cria a mesma sessao HTTP-only usada pelo login por e-mail/senha.
+O login com Google usa OAuth 2.0 Authorization Code no backend Go. O frontend apenas redireciona para `GET /api/auth/google`; o callback valida `state`, consulta o perfil no Google e cria a mesma sessão HTTP-only usada pelo login por e-mail/senha.
 
 No Google Cloud, crie um OAuth Client do tipo Web application e configure o redirect URI:
 
@@ -169,45 +169,54 @@ GOOGLE_REDIRECT_URL=http://localhost:8080/api/auth/google/callback
 Rotas:
 
 - `GET /api/auth/google`: inicia login e redireciona para o Google.
-- `GET /api/auth/google/callback`: recebe `code` e `state`, cria/associa o usuario e redireciona para `/admin`.
+- `GET /api/auth/google/callback`: recebe `code` e `state`, cria/associa o usuário e redireciona para `/admin`.
 
-## CRUD de formularios
+## CRUD de formulários
 
-O backend ja expõe CRUD autenticado para formularios. Campos sao persistidos junto com o formulario e substituidos em bloco no `PUT`, mantendo a camada de regra no backend. Cada formulario tambem possui metadados de privacidade usados no aviso publico: e-mail do controlador, finalidade do tratamento e politica de retencao.
+O backend já expõe CRUD autenticado para formulários. Campos são persistidos junto com o formulário e substituídos em bloco no `PUT`, mantendo a camada de regra no backend. Cada formulário também possui metadados de privacidade usados no aviso público: e-mail do controlador, finalidade do tratamento e política de retenção.
 
 Rotas autenticadas:
 
-- `GET /api/forms`: lista formularios do usuario autenticado.
-- `POST /api/forms`: cria formulario em rascunho.
-- `GET /api/forms/{formId}`: consulta formulario do usuario autenticado.
-- `PUT /api/forms/{formId}`: atualiza titulo, descricao e campos.
-- `DELETE /api/forms/{formId}`: remove formulario.
+- `GET /api/forms`: lista formulários do usuário autenticado.
+- `POST /api/forms`: cria formulário em rascunho.
+- `GET /api/forms/{formId}`: consulta formulário do usuário autenticado.
+- `PUT /api/forms/{formId}`: atualiza título, descrição e campos.
+- `DELETE /api/forms/{formId}`: remove formulário.
 - `POST /api/forms/{formId}/publish`: publica e gera `publicSlug`.
-- `POST /api/forms/{formId}/unpublish`: volta o formulario para rascunho.
+- `POST /api/forms/{formId}/unpublish`: volta o formulário para rascunho.
 
-Rota publica:
+Rota pública:
 
-- `GET /api/public/forms/{slug}`: consulta formulario publicado para preenchimento.
-- `POST /api/public/forms/{slug}/responses`: envia uma resposta publica para formulario publicado.
+- `GET /api/public/forms/{slug}`: consulta formulário publicado para preenchimento.
+- `POST /api/public/forms/{slug}/responses`: envia uma resposta pública para formulário publicado.
 
 Respostas:
 
-- `GET /api/forms/{formId}/responses`: lista respostas recebidas por formulario do usuario autenticado.
+- `GET /api/forms/{formId}/responses`: lista respostas recebidas por formulário do usuário autenticado.
 - `GET /api/forms/{formId}/responses/export`: exporta respostas em JSON para atendimento administrativo.
-- `DELETE /api/forms/{formId}/responses/{responseId}`: exclui uma resposta especifica do formulario.
+- `DELETE /api/forms/{formId}/responses/{responseId}`: exclui uma resposta específica do formulário.
 
-Criar formulario:
+O frontend também permite exportar a listagem de respostas em PDF e Excel a partir do painel administrativo.
+
+Tipos de campo suportados:
+
+- Texto curto, texto longo, e-mail, número, telefone, seleção e caixa de seleção.
+- Campos de e-mail usam validação de formato.
+- Campos de número exigem valor numérico válido.
+- Campos de telefone exigem 12 dígitos numéricos no padrão brasileiro usado neste projeto: 3 dígitos de DDD e 9 dígitos de telefone.
+
+Criar formulário:
 
 ```bash
 curl -i http://localhost:8080/api/forms \
   --cookie "form_builder_session=<cookie-value>" \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Pesquisa de satisfacao",
-    "description": "Formulario publico para clientes",
+    "title": "Pesquisa de satisfação",
+    "description": "Formulário público para clientes",
     "controllerEmail": "privacidade@example.com",
     "privacyPurpose": "Coletar feedback para melhoria do atendimento.",
-    "retentionPolicy": "As respostas serao mantidas por ate 90 dias apos o envio.",
+    "retentionPolicy": "As respostas serão mantidas por até 90 dias após o envio.",
     "fields": [
       {
         "type": "text",
@@ -225,20 +234,20 @@ curl -i http://localhost:8080/api/forms \
   }'
 ```
 
-Publicar formulario:
+Publicar formulário:
 
 ```bash
 curl -i -X POST http://localhost:8080/api/forms/<form-id>/publish \
   --cookie "form_builder_session=<cookie-value>"
 ```
 
-Consultar formulario publicado:
+Consultar formulário publicado:
 
 ```bash
 curl -i http://localhost:8080/api/public/forms/<public-slug>
 ```
 
-Enviar resposta publica:
+Enviar resposta pública:
 
 ```bash
 curl -i http://localhost:8080/api/public/forms/<public-slug>/responses \
@@ -272,20 +281,20 @@ curl -i -X DELETE http://localhost:8080/api/forms/<form-id>/responses/<response-
   --cookie "form_builder_session=<cookie-value>"
 ```
 
-## Pacote minimo LGPD
+## Pacote mínimo LGPD
 
-O projeto inclui controles basicos para apoiar transparencia e atendimento de direitos do titular, sem substituir revisao juridica do controlador.
+O projeto inclui controles básicos para apoiar transparência e atendimento de direitos do titular, sem substituir revisão jurídica do controlador.
 
-- Pagina publica `/privacidade` com politica de privacidade do sistema.
-- Formulario publicado exige e exibe e-mail do controlador, finalidade do tratamento e politica de retencao.
-- Publicacao bloqueada quando os metadados de privacidade obrigatorios nao foram preenchidos.
-- Envio publico exige `privacyAcknowledged: true` e grava `privacyAcknowledgedAt` na resposta.
-- Painel administrativo permite exportar respostas em JSON e excluir uma resposta especifica.
-- Cookies usados hoje sao essenciais: sessao HTTP-only e estado temporario do Google OAuth.
+- Página pública `/privacidade` com política de privacidade do sistema.
+- Formulário publicado exige e exibe e-mail do controlador, finalidade do tratamento e política de retenção.
+- Publicação bloqueada quando os metadados de privacidade obrigatórios não foram preenchidos.
+- Envio público exige `privacyAcknowledged: true` e grava `privacyAcknowledgedAt` na resposta.
+- Painel administrativo permite exportar respostas em JSON, PDF e Excel, além de excluir uma resposta específica.
+- Cookies usados hoje são essenciais: sessão HTTP-only e estado temporário do Google OAuth.
 
 ## Frontend
 
-Instale as dependencias e rode o frontend:
+Instale as dependências e rode o frontend:
 
 ```bash
 cd frontend
@@ -293,7 +302,7 @@ npm install
 npm run dev
 ```
 
-O frontend usa `http://localhost:8080` como API por padrao. Para mudar, copie `frontend/.env.example` para `frontend/.env` e ajuste `VITE_API_URL`.
+O frontend usa `http://localhost:8080` como API por padrão. Para mudar, copie `frontend/.env.example` para `frontend/.env` e ajuste `VITE_API_URL`.
 
 Guarda de arquitetura do frontend:
 
@@ -302,11 +311,11 @@ cd frontend
 npm run lint:architecture
 ```
 
-Regra do projeto: componentes e paginas nao devem misturar logica com estetica. Estilos MUI ficam em arquivos `*.styles.ts`; rotas e providers ficam em `src/app`; codigo por dominio fica em `src/features`; helpers sem UI ficam em `src/lib`.
+Regra do projeto: componentes e páginas não devem misturar lógica com estética. Estilos MUI ficam em arquivos `*.styles.ts`; rotas e providers ficam em `src/app`; código por domínio fica em `src/features`; helpers sem UI ficam em `src/lib`.
 
-Depois do login, `/admin` exibe apenas a lista de formularios salvos. A area administrativa completa fica em `/admin/workspace` e consome a API real para criar, editar, configurar campos, publicar, despublicar e excluir formularios. A pagina publica `/f/:slug` carrega o formulario publicado por slug e envia respostas. A rota `/admin/forms/:formId/responses` lista as respostas recebidas.
+Depois do login, `/admin` exibe apenas a lista de formulários salvos. A área administrativa completa fica em `/admin/workspace` e consome a API real para criar, editar, configurar campos, publicar, despublicar e excluir formulários. A página pública `/f/:slug` carrega o formulário publicado por slug e envia respostas. A rota `/admin/forms/:formId/responses` lista as respostas recebidas.
 
-## Validacao manual local
+## Validação manual local
 
 Com PostgreSQL, backend e frontend rodando, valide o fluxo principal no navegador:
 
@@ -317,32 +326,32 @@ http://localhost:5173
 Checklist:
 
 - Criar uma conta por e-mail e senha.
-- Entrar e conferir a lista de formularios salvos em `/admin`.
-- Acessar a area administrativa em `/admin/workspace`.
-- Criar um formulario.
-- Preencher e-mail do controlador, finalidade do tratamento e retencao das respostas.
-- Adicionar campos ao formulario.
-- Salvar o formulario.
-- Publicar o formulario.
-- Abrir o link publico gerado em `/f/:slug`.
-- Confirmar ciencia do aviso de privacidade.
-- Enviar uma resposta sem autenticacao.
+- Entrar e conferir a lista de formulários salvos em `/admin`.
+- Acessar a área administrativa em `/admin/workspace`.
+- Criar um formulário.
+- Preencher e-mail do controlador, finalidade do tratamento e retenção das respostas.
+- Adicionar campos ao formulário, incluindo telefone para validar o padrão brasileiro.
+- Salvar o formulário.
+- Publicar o formulário.
+- Abrir o link público gerado em `/f/:slug`.
+- Confirmar ciência do aviso de privacidade.
+- Enviar uma resposta sem autenticação.
 - Voltar ao admin e abrir `/admin/forms/:formId/responses`.
 - Confirmar que a resposta enviada aparece na listagem.
-- Exportar respostas em JSON e excluir uma resposta de teste.
+- Exportar respostas em JSON, PDF e Excel e excluir uma resposta de teste.
 
 Sinais esperados:
 
 - Backend respondendo em `http://localhost:8080/healthz`.
 - Readiness respondendo em `http://localhost:8080/readyz`.
 - Frontend servindo em `http://localhost:5173`.
-- Cookie HTTP-only `form_builder_session` criado apos login.
+- Cookie HTTP-only `form_builder_session` criado após login.
 
-Se houver um PostgreSQL local usando a porta `5432`, pare esse servico antes de subir o PostgreSQL do Docker ou altere a porta publicada no `docker-compose.yml` e ajuste `DATABASE_URL`.
+Se houver um PostgreSQL local usando a porta `5432`, pare esse serviço antes de subir o PostgreSQL do Docker ou altere a porta publicada no `docker-compose.yml` e ajuste `DATABASE_URL`.
 
 ## OpenAPI e client TypeScript
 
-Sempre que uma rota, payload, schema ou status code da API mudar no backend, atualize primeiro a especificacao OpenAPI gerada:
+Sempre que uma rota, payload, schema ou status code da API mudar no backend, atualize primeiro a especificação OpenAPI gerada:
 
 ```bash
 make openapi
@@ -356,7 +365,7 @@ make client
 
 Esse comando roda `npm run generate:api` dentro de `frontend` e atualiza `frontend/src/api/generated/schema.ts` e `frontend/src/api/generated/client.ts` a partir de `backend/openapi/openapi.json`.
 
-Fluxo obrigatorio para mudancas de contrato:
+Fluxo obrigatório para mudanças de contrato:
 
 ```bash
 make openapi && make client
@@ -371,18 +380,18 @@ cd ../frontend
 npm run generate:api
 ```
 
-Arquivos gerados ficam em `frontend/src/api/generated`, sao versionados para revisao e nao devem ser editados manualmente. O build do frontend tambem executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formularios e respostas sao aliases derivados de `frontend/src/api/generated/schema.ts`, e as paginas/features consomem a API por meio das funcoes geradas em `frontend/src/api/generated/client.ts`.
+Arquivos gerados ficam em `frontend/src/api/generated`, são versionados para revisão e não devem ser editados manualmente. O build do frontend também executa `npm run generate:api` antes do typecheck. Os tipos usados nas features de auth, formulários e respostas são aliases derivados de `frontend/src/api/generated/schema.ts`, e as páginas/features consomem a API por meio das funções geradas em `frontend/src/api/generated/client.ts`.
 
-## Decisoes iniciais
+## Decisões iniciais
 
-- Monorepo para simplificar setup local, revisao e DX.
-- PostgreSQL por ser multiplataforma, robusto e adequado para persistencia relacional. O Docker Compose existe apenas como conveniencia para desenvolvimento local.
-- Vite em vez de Next.js para deixar claro que o backend Go e responsavel pela API, regras de negocio e persistencia.
-- Frontend organizado por `app`, `features`, `styles`, `lib` e `api`, mantendo estilos fora dos componentes e logica fora da camada visual.
-- Formularios, campos e respostas serao modelados em tabelas relacionais, com `jsonb` para configuracoes e respostas flexiveis.
-- Sessoes em banco com token opaco em cookie HTTP-only. O banco armazena apenas o hash HMAC do token, reduzindo impacto se os dados de sessao vazarem.
-- Migrations embutidas no binario Go para manter o setup local reproduzivel sem depender de uma CLI externa.
+- Monorepo para simplificar setup local, revisão e DX.
+- PostgreSQL por ser multiplataforma, robusto e adequado para persistência relacional. O Docker Compose existe apenas como conveniência para desenvolvimento local.
+- Vite em vez de Next.js para deixar claro que o backend Go é responsável pela API, regras de negócio e persistência.
+- Frontend organizado por `app`, `features`, `styles`, `lib` e `api`, mantendo estilos fora dos componentes e lógica fora da camada visual.
+- Formulários, campos e respostas serão modelados em tabelas relacionais, com `jsonb` para configurações e respostas flexíveis.
+- Sessões em banco com token opaco em cookie HTTP-only. O banco armazena apenas o hash HMAC do token, reduzindo impacto se os dados de sessão vazarem.
+- Migrations embutidas no binário Go para manter o setup local reproduzível sem depender de uma CLI externa.
 
 ## Status
 
-Ja existe a base real do backend com conexao PostgreSQL, migrations executaveis, modelo de usuarios/sessoes, autenticacao por e-mail/senha, autenticacao com Google, CRUD autenticado de formularios com publicacao, envio/listagem de respostas e frontend conectado aos fluxos principais.
+Já existe a base real do backend com conexão PostgreSQL, migrations executáveis, modelo de usuários/sessões, autenticação por e-mail/senha, autenticação com Google, CRUD autenticado de formulários com publicação, envio/listagem de respostas e frontend conectado aos fluxos principais.

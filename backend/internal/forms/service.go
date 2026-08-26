@@ -91,7 +91,7 @@ func (service *Service) PublishForm(ctx context.Context, ownerID string, formID 
 	}
 
 	if len(form.Fields) == 0 {
-		return Form{}, ValidationError{Message: "o formulario deve ter pelo menos um campo antes da publicacao"}
+		return Form{}, ValidationError{Message: "o formulário deve ter pelo menos um campo antes da publicação"}
 	}
 	if err := validatePrivacyNotice(form.ControllerEmail, form.PrivacyPurpose, form.RetentionPolicy); err != nil {
 		return Form{}, err
@@ -128,7 +128,7 @@ func (service *Service) UnpublishForm(ctx context.Context, ownerID string, formI
 func (service *Service) GetPublishedForm(ctx context.Context, slug string) (Form, error) {
 	slug = strings.TrimSpace(slug)
 	if slug == "" {
-		return Form{}, ValidationError{Message: "slug e obrigatorio"}
+		return Form{}, ValidationError{Message: "slug é obrigatório"}
 	}
 
 	return service.repo.GetPublishedBySlug(ctx, slug)
@@ -137,15 +137,15 @@ func (service *Service) GetPublishedForm(ctx context.Context, slug string) (Form
 func normalizeFormInput(input FormInput) (FormInput, error) {
 	title := strings.TrimSpace(input.Title)
 	if title == "" {
-		return FormInput{}, ValidationError{Message: "titulo e obrigatorio"}
+		return FormInput{}, ValidationError{Message: "título é obrigatório"}
 	}
 	if len(title) > maxTitleLength {
-		return FormInput{}, ValidationError{Message: "titulo muito longo"}
+		return FormInput{}, ValidationError{Message: "título muito longo"}
 	}
 
 	description := normalizeOptionalString(input.Description)
 	if description != nil && len(*description) > maxDescriptionLength {
-		return FormInput{}, ValidationError{Message: "descricao muito longa"}
+		return FormInput{}, ValidationError{Message: "descrição muito longa"}
 	}
 
 	controllerEmail, err := normalizeControllerEmail(input.ControllerEmail)
@@ -160,11 +160,11 @@ func normalizeFormInput(input FormInput) (FormInput, error) {
 
 	retentionPolicy := normalizeOptionalString(input.RetentionPolicy)
 	if retentionPolicy != nil && len(*retentionPolicy) > maxRetentionPolicyLength {
-		return FormInput{}, ValidationError{Message: "politica de retencao muito longa"}
+		return FormInput{}, ValidationError{Message: "política de retenção muito longa"}
 	}
 
 	if len(input.Fields) > maxFieldsPerForm {
-		return FormInput{}, ValidationError{Message: "formulario tem campos demais"}
+		return FormInput{}, ValidationError{Message: "formulário tem campos demais"}
 	}
 
 	fields := make([]FieldInput, 0, len(input.Fields))
@@ -189,7 +189,7 @@ func normalizeFormInput(input FormInput) (FormInput, error) {
 
 func validatePublishableInput(input FormInput) error {
 	if len(input.Fields) == 0 {
-		return ValidationError{Message: "o formulario deve ter pelo menos um campo antes da publicacao"}
+		return ValidationError{Message: "o formulário deve ter pelo menos um campo antes da publicação"}
 	}
 
 	return validatePrivacyNotice(input.ControllerEmail, input.PrivacyPurpose, input.RetentionPolicy)
@@ -197,13 +197,13 @@ func validatePublishableInput(input FormInput) error {
 
 func validatePrivacyNotice(controllerEmail *string, privacyPurpose *string, retentionPolicy *string) error {
 	if controllerEmail == nil {
-		return ValidationError{Message: "e-mail de contato do controlador e obrigatorio antes da publicacao"}
+		return ValidationError{Message: "e-mail de contato do controlador é obrigatório antes da publicação"}
 	}
 	if privacyPurpose == nil {
-		return ValidationError{Message: "finalidade do tratamento e obrigatoria antes da publicacao"}
+		return ValidationError{Message: "finalidade do tratamento é obrigatória antes da publicação"}
 	}
 	if retentionPolicy == nil {
-		return ValidationError{Message: "politica de retencao e obrigatoria antes da publicacao"}
+		return ValidationError{Message: "política de retenção é obrigatória antes da publicação"}
 	}
 
 	return nil
@@ -211,15 +211,15 @@ func validatePrivacyNotice(controllerEmail *string, privacyPurpose *string, rete
 
 func normalizeFieldInput(input FieldInput) (FieldInput, error) {
 	if !allowedFieldType(input.Type) {
-		return FieldInput{}, ValidationError{Message: "tipo de campo invalido"}
+		return FieldInput{}, ValidationError{Message: "tipo de campo inválido"}
 	}
 
 	label := strings.TrimSpace(input.Label)
 	if label == "" {
-		return FieldInput{}, ValidationError{Message: "rotulo do campo e obrigatorio"}
+		return FieldInput{}, ValidationError{Message: "rótulo do campo é obrigatório"}
 	}
 	if len(label) > maxLabelLength {
-		return FieldInput{}, ValidationError{Message: "rotulo do campo muito longo"}
+		return FieldInput{}, ValidationError{Message: "rótulo do campo muito longo"}
 	}
 
 	placeholder := normalizeOptionalString(input.Placeholder)
@@ -229,7 +229,7 @@ func normalizeFieldInput(input FieldInput) (FieldInput, error) {
 
 	options := normalizeOptions(input.Options)
 	if input.Type == FieldTypeSelect && len(options) == 0 {
-		return FieldInput{}, ValidationError{Message: "campos de selecao devem ter pelo menos uma opcao"}
+		return FieldInput{}, ValidationError{Message: "campos de seleção devem ter pelo menos uma opção"}
 	}
 
 	config := input.Config
@@ -249,7 +249,7 @@ func normalizeFieldInput(input FieldInput) (FieldInput, error) {
 
 func allowedFieldType(fieldType FieldType) bool {
 	switch fieldType {
-	case FieldTypeText, FieldTypeTextarea, FieldTypeEmail, FieldTypeNumber, FieldTypeSelect, FieldTypeCheckbox:
+	case FieldTypeText, FieldTypeTextarea, FieldTypeEmail, FieldTypeNumber, FieldTypePhone, FieldTypeSelect, FieldTypeCheckbox:
 		return true
 	default:
 		return false
@@ -280,7 +280,7 @@ func normalizeControllerEmail(value *string) (*string, error) {
 
 	parsed, err := mail.ParseAddress(*email)
 	if err != nil || parsed.Address != *email {
-		return nil, ValidationError{Message: "e-mail de contato do controlador deve ser valido"}
+		return nil, ValidationError{Message: "e-mail de contato do controlador deve ser válido"}
 	}
 
 	return email, nil
@@ -305,7 +305,7 @@ func normalizeOptions(options []string) []string {
 
 func validateID(id string) error {
 	if !uuidPattern.MatchString(strings.TrimSpace(id)) {
-		return ValidationError{Message: "id do formulario invalido"}
+		return ValidationError{Message: "id do formulário inválido"}
 	}
 
 	return nil

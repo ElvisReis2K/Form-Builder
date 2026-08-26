@@ -100,7 +100,7 @@ export function getErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return 'Erro inesperado na requisicao';
+  return 'Erro inesperado na requisição';
 }
 
 export function apiURL<TPath extends keyof paths>(path: TPath, pathParams?: RuntimePathParameters) {
@@ -255,7 +255,7 @@ async function apiRequest<TPath extends keyof paths, TMethod extends AvailableMe
   if (!response.ok) {
     const apiError = payload as APIErrorPayload | undefined;
     throw new APIError(
-      apiError?.error?.message ?? 'Falha na requisicao',
+      apiError?.error?.message ?? 'Falha na requisição',
       response.status,
       apiError?.error?.code ?? 'request_failed',
     );
@@ -281,7 +281,7 @@ function resolvePath(route: string, pathParams: RuntimePathParameters = {}) {
   return route.replace(/\{([^}]+)\}/g, (_, key: string) => {
     const value = pathParams[key];
     if (value === undefined || value === null) {
-      throw new Error(`Parametro de rota ausente: "${key}"`);
+      throw new Error(`Parâmetro de rota ausente: "${key}"`);
     }
 
     return encodeURIComponent(String(value));

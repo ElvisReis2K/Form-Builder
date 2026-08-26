@@ -1095,7 +1095,7 @@ export interface components {
             position: number;
             required: boolean;
             /** @enum {string} */
-            type: "text" | "textarea" | "email" | "number" | "select" | "checkbox";
+            type: "text" | "textarea" | "email" | "number" | "phone" | "select" | "checkbox";
         };
         FormFieldInput: {
             config?: {
@@ -1106,7 +1106,7 @@ export interface components {
             placeholder?: string | null;
             required?: boolean;
             /** @enum {string} */
-            type: "text" | "textarea" | "email" | "number" | "select" | "checkbox";
+            type: "text" | "textarea" | "email" | "number" | "phone" | "select" | "checkbox";
         };
         FormListResponse: {
             forms: components["schemas"]["Form"][];
@@ -1127,7 +1127,7 @@ export interface components {
             position: number;
             required: boolean;
             /** @enum {string} */
-            type: "text" | "textarea" | "email" | "number" | "select" | "checkbox";
+            type: "text" | "textarea" | "email" | "number" | "phone" | "select" | "checkbox";
         };
         FormResponseSummary: {
             /** Format: email */
