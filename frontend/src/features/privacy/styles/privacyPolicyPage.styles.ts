@@ -8,6 +8,8 @@ export const privacyPolicyPageStyles = {
       xs: 2.5,
       sm: 4,
     },
+    borderTop: 3,
+    borderTopColor: 'secondary.main',
   },
   stack: {
     gap: {
@@ -21,5 +23,12 @@ export const privacyPolicyPageStyles = {
   },
   section: {
     gap: 0.75,
+    pb: 2,
+    borderBottom: 1,
+    borderColor: 'divider',
+    '&:last-of-type': {
+      borderBottom: 0,
+      pb: 0,
+    },
   },
 } satisfies Record<string, SxProps<Theme>>;

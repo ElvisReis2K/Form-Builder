@@ -2,19 +2,21 @@ import type { SxProps, Theme } from '@mui/material/styles';
 
 export const loginPageStyles = {
   panel: {
-    maxWidth: 440,
+    maxWidth: 460,
     mx: 'auto',
     mt: {
       xs: 3,
-      md: 7,
+      md: 6,
     },
     p: {
       xs: 3,
       sm: 4,
     },
+    borderTop: 3,
+    borderTopColor: 'secondary.main',
   },
   form: {
-    gap: 2.25,
+    gap: 2,
   },
   header: {
     gap: 0.75,
@@ -38,7 +40,7 @@ export const loginPageStyles = {
     },
   },
   googleButton: {
-    mt: 0.5,
+    mt: 0.25,
   },
   privacyText: {
     textAlign: 'center',

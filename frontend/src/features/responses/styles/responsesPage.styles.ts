@@ -3,8 +3,8 @@ import type { SxProps, Theme } from '@mui/material/styles';
 export const responsesPageStyles = {
   pageStack: {
     gap: {
-      xs: 2.5,
-      md: 3.5,
+      xs: 2.25,
+      md: 3,
     },
   },
   header: {
@@ -25,6 +25,7 @@ export const responsesPageStyles = {
   },
   panel: {
     overflow: 'hidden',
+    bgcolor: 'rgba(255, 255, 255, 0.92)',
   },
   tableContainer: {
     overflowX: 'auto',
@@ -33,10 +34,10 @@ export const responsesPageStyles = {
     minWidth: 760,
   },
   tableHead: {
-    bgcolor: '#f9fbfd',
+    bgcolor: 'rgba(232, 241, 243, 0.54)',
   },
   emptyState: {
-    minHeight: 260,
+    minHeight: 240,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 1,

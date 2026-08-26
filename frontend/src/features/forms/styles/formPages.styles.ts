@@ -3,8 +3,8 @@ import type { SxProps, Theme } from '@mui/material/styles';
 export const formPagesStyles = {
   pageStack: {
     gap: {
-      xs: 2.5,
-      md: 3.5,
+      xs: 2.25,
+      md: 3,
     },
   },
   header: {
@@ -28,8 +28,8 @@ export const formPagesStyles = {
     display: 'grid',
     gridTemplateColumns: {
       xs: '1fr',
-      md: '300px minmax(0, 1fr)',
-      lg: '320px minmax(0, 1fr)',
+      md: '292px minmax(0, 1fr)',
+      lg: '312px minmax(0, 1fr)',
     },
     gap: {
       xs: 2,
@@ -39,6 +39,7 @@ export const formPagesStyles = {
   },
   sidebarPanel: {
     overflow: 'hidden',
+    bgcolor: 'rgba(255, 255, 255, 0.9)',
     position: {
       md: 'sticky',
     },
@@ -47,14 +48,14 @@ export const formPagesStyles = {
     },
   },
   sidebarHeader: {
-    p: 2.25,
+    p: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 2,
   },
   formsList: {
-    p: 1,
+    p: 1.25,
     maxHeight: {
       xs: 280,
       md: 650,
@@ -69,14 +70,23 @@ export const formPagesStyles = {
     px: 2,
   },
   formListItem: {
-    mb: 0.75,
+    mb: 0.85,
     gap: 1.5,
+    border: 1,
+    borderColor: 'transparent',
+    py: 1.15,
+    transition: 'background-color 170ms ease, border-color 170ms ease, transform 170ms ease',
     '&:last-of-type': {
       mb: 0,
+    },
+    '&:hover': {
+      borderColor: 'divider',
+      bgcolor: 'rgba(255, 255, 255, 0.72)',
     },
     '&.Mui-selected': {
       bgcolor: 'primary.main',
       color: 'primary.contrastText',
+      boxShadow: '0 10px 22px rgba(47, 96, 115, 0.16)',
       '& .MuiListItemText-secondary': {
         color: 'rgba(255,255,255,0.72)',
       },
@@ -87,8 +97,8 @@ export const formPagesStyles = {
   },
   editorPanel: {
     p: {
-      xs: 2.25,
-      md: 3,
+      xs: 2,
+      md: 3.25,
     },
   },
   editorStack: {
@@ -112,7 +122,7 @@ export const formPagesStyles = {
   formGrid: {
     display: 'grid',
     gridTemplateColumns: '1fr',
-    gap: 2.25,
+    gap: 2,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -121,7 +131,7 @@ export const formPagesStyles = {
     gap: 2,
   },
   fieldStack: {
-    gap: 1.5,
+    gap: 1.25,
   },
   fieldEditor: {
     gap: 2,
@@ -132,7 +142,19 @@ export const formPagesStyles = {
       xs: 1.75,
       md: 2,
     },
-    bgcolor: '#f9fbfd',
+    bgcolor: 'rgba(255, 255, 255, 0.78)',
+    transition: 'border-color 170ms ease, box-shadow 170ms ease, transform 170ms ease',
+    '&:hover': {
+      borderColor: 'rgba(47, 96, 115, 0.28)',
+      boxShadow: '0 12px 28px rgba(20, 33, 31, 0.055)',
+      transform: 'translateY(-1px)',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+      '&:hover': {
+        transform: 'none',
+      },
+    },
   },
   fieldHeader: {
     flexDirection: 'row',
@@ -152,14 +174,14 @@ export const formPagesStyles = {
   actionBar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 1,
-    pt: 0.5,
+    gap: 1.1,
+    pt: 0.25,
   },
   publishButton: {
     alignSelf: 'flex-start',
   },
   publicPanel: {
-    maxWidth: 700,
+    maxWidth: 740,
     mx: 'auto',
     mt: {
       xs: 2,
@@ -169,6 +191,8 @@ export const formPagesStyles = {
       xs: 2.5,
       sm: 4,
     },
+    borderTop: 3,
+    borderTopColor: 'primary.main',
   },
   publicHeader: {
     gap: 0.75,
@@ -177,9 +201,9 @@ export const formPagesStyles = {
   privacyNotice: {
     gap: 0.75,
     border: 1,
-    borderColor: 'divider',
+    borderColor: 'rgba(47, 96, 115, 0.2)',
     borderRadius: 1,
-    bgcolor: '#f9fbfd',
+    bgcolor: 'rgba(232, 241, 243, 0.58)',
     p: {
       xs: 1.5,
       sm: 2,
