@@ -6,10 +6,13 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { getApiAuthMe } from '../../../api/generated/client';
 import { authMeQueryKey } from '../queryKeys';
-import { endAuthenticatedSession, isReauthenticationRequired } from '../session';
+import {
+  canUseAuthenticatedSession,
+  confirmAuthenticatedSession,
+  consumeGoogleOAuthReturn,
+  endAuthenticatedSession,
+} from '../session';
 import { authGateStyles } from '../styles/authGate.styles';
-
-let protectedReloadResetHandled = false;
 
 type RequireAuthProps = {
   children: ReactNode;
@@ -20,12 +23,13 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const redirectTo = `${location.pathname}${location.search}${location.hash}`;
-  const [mustReauthenticate] = useState(() => isReauthenticationRequired() || shouldResetSessionAfterReload());
+  const [canUseSession] = useState(() => canUseAuthenticatedSession() || consumeGoogleOAuthReturn());
+  const mustReauthenticate = !canUseSession;
   const authQuery = useQuery({
     queryKey: authMeQueryKey,
     queryFn: () => getApiAuthMe(),
     retry: false,
-    enabled: !mustReauthenticate,
+    enabled: canUseSession,
   });
 
   useEffect(() => {
@@ -37,6 +41,12 @@ export default function RequireAuth({ children }: RequireAuthProps) {
       navigate(`/?redirectTo=${encodeURIComponent(redirectTo)}`, { replace: true });
     });
   }, [mustReauthenticate, navigate, queryClient, redirectTo]);
+
+  useEffect(() => {
+    if (authQuery.isSuccess) {
+      confirmAuthenticatedSession();
+    }
+  }, [authQuery.isSuccess]);
 
   if (mustReauthenticate || authQuery.isPending) {
     return (
@@ -54,18 +64,4 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   }
 
   return children;
-}
-
-function shouldResetSessionAfterReload() {
-  if (protectedReloadResetHandled) {
-    return false;
-  }
-
-  const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-  if (navigation?.type !== 'reload') {
-    return false;
-  }
-
-  protectedReloadResetHandled = true;
-  return true;
 }

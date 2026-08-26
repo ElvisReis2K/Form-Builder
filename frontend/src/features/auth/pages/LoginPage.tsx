@@ -5,7 +5,7 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 
 import { apiURL, getErrorMessage, postApiAuthLogin, postApiAuthRegister } from '../../../api/generated/client';
 
-import { clearReauthenticationRequirement, completeAuthentication, endAuthenticatedSession } from '../session';
+import { allowGoogleOAuthReturn, completeAuthentication, endAuthenticatedSession } from '../session';
 import { loginPageStyles } from '../styles/loginPage.styles';
 
 type AuthMode = 'login' | 'register';
@@ -72,7 +72,7 @@ export default function LoginPage() {
       return;
     }
 
-    clearReauthenticationRequirement();
+    allowGoogleOAuthReturn();
     window.location.assign(apiURL('/api/auth/google'));
   }
 

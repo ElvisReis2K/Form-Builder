@@ -4,22 +4,40 @@ import { postApiAuthLogout } from '../../api/generated/client';
 import type { AuthResponse } from './types';
 import { authMeQueryKey } from './queryKeys';
 
-const reauthenticationRequiredKey = 'form_builder_reauthentication_required';
+const pendingGoogleOAuthKey = 'form_builder_pending_google_oauth';
+
+let authenticatedInCurrentPageLoad = false;
 
 export function requireReauthentication() {
-  window.sessionStorage.setItem(reauthenticationRequiredKey, 'true');
+  authenticatedInCurrentPageLoad = false;
+  window.sessionStorage.removeItem(pendingGoogleOAuthKey);
 }
 
-export function isReauthenticationRequired() {
-  return window.sessionStorage.getItem(reauthenticationRequiredKey) === 'true';
+export function allowGoogleOAuthReturn() {
+  window.sessionStorage.setItem(pendingGoogleOAuthKey, 'true');
 }
 
-export function clearReauthenticationRequirement() {
-  window.sessionStorage.removeItem(reauthenticationRequiredKey);
+export function canUseAuthenticatedSession() {
+  return authenticatedInCurrentPageLoad;
+}
+
+export function consumeGoogleOAuthReturn() {
+  const canReturnFromGoogle = window.sessionStorage.getItem(pendingGoogleOAuthKey) === 'true';
+  window.sessionStorage.removeItem(pendingGoogleOAuthKey);
+
+  if (canReturnFromGoogle) {
+    authenticatedInCurrentPageLoad = true;
+  }
+
+  return canReturnFromGoogle;
+}
+
+export function confirmAuthenticatedSession() {
+  authenticatedInCurrentPageLoad = true;
 }
 
 export function completeAuthentication(queryClient: QueryClient, authResponse: AuthResponse) {
-  clearReauthenticationRequirement();
+  confirmAuthenticatedSession();
   queryClient.setQueryData(authMeQueryKey, authResponse);
 }
 

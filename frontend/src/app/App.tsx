@@ -4,7 +4,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 import { getApiAuthMe } from '../api/generated/client';
 import { authMeQueryKey } from '../features/auth/queryKeys';
-import { endAuthenticatedSession, isReauthenticationRequired } from '../features/auth/session';
+import { canUseAuthenticatedSession, endAuthenticatedSession } from '../features/auth/session';
 import { appStyles } from './app.styles';
 import AppRoutes from './AppRoutes';
 import { authenticatedNavItems, guestNavItems } from './navigation';
@@ -17,7 +17,7 @@ export default function App() {
     queryKey: authMeQueryKey,
     queryFn: () => getApiAuthMe(),
     retry: false,
-    enabled: !isReauthenticationRequired(),
+    enabled: canUseAuthenticatedSession(),
   });
   const isLoginPage = location.pathname === '/';
   const canShowAuthenticatedActions = authQuery.isSuccess && !isLoginPage;

@@ -125,6 +125,8 @@ go run ./cmd/server openapi
 
 A base atual possui cadastro, login, logout e consulta do usuário autenticado. A sessão usa cookie HTTP-only (`form_builder_session`) e persiste apenas o hash HMAC do token no banco.
 
+No frontend, a área administrativa só reutiliza a sessão durante a execução atual da SPA. Ao recarregar uma rota administrativa ou abrir uma rota protegida diretamente, a aplicação encerra a sessão no backend e exige login novamente.
+
 Cadastro:
 
 ```bash
